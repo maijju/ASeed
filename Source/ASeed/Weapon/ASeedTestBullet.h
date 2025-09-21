@@ -3,11 +3,19 @@
 #pragma once
 
 #include "EngineMinimal.h"
-#include "Particles/ParticleSystem.h"
-#include "Particles/ParticleSystemComponent.h"
+
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "Engine/DamageEvents.h"
 #include "GameFramework/Actor.h"
+
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayEffectExtension.h"
+
+#include "Particles/ParticleSystem.h"
+#include "Particles/ParticleSystemComponent.h"
+
 #include "ASeedTestBullet.generated.h"
 
 UCLASS()
@@ -22,6 +30,8 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBoxComponent> Body;
 
+	class AController* OwnerController;
+
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> Movement;
 
@@ -31,7 +41,9 @@ protected:
 	UParticleSystem* TrailEffect;
 
 	UPROPERTY(EditAnywhere)
-	float Life = 1;
+	float LifeDuration = 1;
+
+	float Damage = 0;
 
 protected:
 	// Called when the game starts or when spawned
@@ -40,6 +52,16 @@ protected:
 public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
+
+	void SetDamage(float Amount)
+	{
+		Damage = Amount;
+	}
+
+	void SetOwnerController(class AController* Controller)
+	{
+		OwnerController = Controller;
+	}
 
 public:
 	// ProjectileMovement를 이용하여 움직이는 물체가 다른 물체와 부딪혀서 더이상 움직일

@@ -61,10 +61,10 @@ void AASeedTestBullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (Life > 0)
-		Life -= DeltaTime;
+	if (LifeDuration > 0)
+		LifeDuration -= DeltaTime;
 
-	if (Life <= 0)
+	if (LifeDuration <= 0)
 	{
 		Destroy();
 	}
@@ -73,7 +73,44 @@ void AASeedTestBullet::Tick(float DeltaTime)
 
 void AASeedTestBullet::ProjectileStop(const FHitResult& Hit)
 {
-	FDamageEvent	DmgEvent;
+	IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwnerController->GetPawn());
+
+	if (ASI)
+	{
+		UAbilitySystemComponent* ASC = ASI->GetAbilitySystemComponent();
+
+		if (ASC)
+		{
+			FGameplayEventData	EventData;
+
+			// 타겟을 지정한다.
+			EventData.Target = Hit.GetActor();
+
+			// 데미지를 가하는 대상을 지정한다.
+			EventData.Instigator = OwnerController->GetPawn();
+
+			// 동작시키고자 하는 어빌리티 태그를 지정한다.
+			EventData.EventTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Player.NormalAttack"));
+
+			// 타겟에 대한 히트 정보를 저장하기 위한 객체를 생성하고 EventData에
+			// 지정해준다.
+			FGameplayAbilityTargetData_SingleTargetHit* TargetData =
+				new FGameplayAbilityTargetData_SingleTargetHit(Hit);
+
+			EventData.TargetData.Add(TargetData);
+
+			// 이벤트를 발생시켜 어빌리티를 실행시킨다.
+			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerController->GetPawn(), EventData.EventTag, EventData);
+		}
+		else
+		{
+			UE_LOG(LogTemp, Warning, TEXT("ASC Failed"));
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("ASI Failed"));
+	}
 
 	if (HitEffect)
 	{
@@ -85,8 +122,6 @@ void AASeedTestBullet::ProjectileStop(const FHitResult& Hit)
 			FVector(1.3f)
 		);
 	}
-
-	UE_LOG(LogTemp, Warning, TEXT("%s"), *Hit.GetActor()->GetName());
 
 	USoundBase* Sound = LoadObject<USoundBase>(GetWorld(), TEXT("/Script/Engine.SoundWave'/Game/Sound/Fire1.Fire1'"));
 	UGameplayStatics::SpawnSoundAtLocation(GetWorld(), Sound, Hit.ImpactPoint);

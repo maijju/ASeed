@@ -1,58 +1,54 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ASeedPlayer.h"
-#include "../Enemy/ASeedTargetPawn.h"
+
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
-#include "EnhancedInputComponent.h"
-#include "EnhancedInputSubsystems.h"
-#include "InputActionValue.h"
-
-DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 AASeedPlayer::AASeedPlayer()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	// Set size for collision capsule
+	/*--------------CAPSULE(ROOT)--------------*/
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 	GetCapsuleComponent()->SetCollisionProfileName(TEXT("Player"));
 	SetRootComponent(GetCapsuleComponent());
 
-	// Don't rotate when the controller rotates. Let that just affect the camera.
-	bUseControllerRotationPitch = false;
-	bUseControllerRotationYaw = false;
-	bUseControllerRotationRoll = false;
-
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...	
-	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
-
-	// Note: For faster iteration times these variables, and many more, can be tweaked in the Character Blueprint
-	// instead of recompiling to adjust them
+	/*--------------MOVEMENT--------------*/
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f);
 	GetCharacterMovement()->MaxWalkSpeed = 250.f;
 	GetCharacterMovement()->MinAnalogWalkSpeed = 20.f;
 	GetCharacterMovement()->BrakingDecelerationWalking = 2000.f;
 	GetCharacterMovement()->BrakingDecelerationFalling = 1500.0f;
 
-
-	// Create a camera boom (pulls in towards the player if there is a collision)
+	/*--------------CAMERA--------------*/
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->bUsePawnControlRotation = false; // Rotate the arm based on the controller
+	CameraBoom->bUsePawnControlRotation = false;
 
-	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName);
+	FollowCamera->bUsePawnControlRotation = false;
 
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	/*--------------EFFECT--------------*/
 	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
 	ParticleComp->SetupAttachment(RootComponent);
 	ParticleComp->bAutoActivate = false;
+
+	/*--------------GAS--------------*/
+	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+	AttributeSet = CreateDefaultSubobject<UASeedPlayerAttributeSet>(TEXT("AttributeSet"));
+	ASC->AddAttributeSetSubobject<UASeedPlayerAttributeSet>(AttributeSet);
 }
 
 void AASeedPlayer::NotifyControllerChanged()
@@ -81,26 +77,51 @@ void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 void AASeedPlayer::BeginPlay()
 {
 	Super::BeginPlay();
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
 
+	/*--------------ANIMINST--------------*/
 	AnimInst = Cast<UASeedPlayerAnimInst>(GetMesh()->GetAnimInstance());
+
+	/*--------------GAS--------------*/
+	//AttributeSet->SetName(PlayerController->GetPlayerName());
+	AttributeSet->SetAttack(PlayerData.Attack);
+	AttributeSet->SetAmmo(PlayerData.Ammo);
+	AttributeSet->SetAmmoMax(PlayerData.AmmoMax);
+	AttributeSet->SetDefense(PlayerData.Defense);
+	AttributeSet->SetHP(PlayerData.HP);
+	AttributeSet->SetHPMax(PlayerData.HPMax);
+	AttributeSet->SetAttackRange(PlayerData.AttackRange);
+	AttributeSet->SetAttackSpeed(PlayerData.AttackSpeed);
+	AttributeSet->SetMoveSpeed(PlayerData.MoveSpeed);
+	AttributeSet->SetLevel(PlayerData.Level);
+	AttributeSet->SetExp(PlayerData.Exp);
+	AttributeSet->SetGold(PlayerData.Gold);
+
+	ASC->InitAbilityActorInfo(this, this);
+
+	//ASC->GetGameplayAttributeValueChangeDelegate(UASeedPlayerAttributeSet::GetAttackAttribute()).AddUObject(this, &UASeedPlayerAttributeSet::AttackAttributeChangeDelegate);
+
+	// 특정 태그가 발생되었을 때 호출해줄 함수를 지정할 수 있다.
+	// 태그가 제거될 때도 들어온다.
+	//ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(TEXT("Custom.State.Stun")), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AASeedPlayer::OnGameplayStun);
 }
 
 void AASeedPlayer::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	/*--------------Detect--------------*/
+	/*--------------DETECT SETUP--------------*/
 	FVector WorldLocation, WorldDirection;
+
 	APlayerController* PC = Cast<APlayerController>(GetController());
 	PC->DeprojectMousePositionToWorld(WorldLocation, WorldDirection);
+
 	FHitResult Hit;
 	FVector TraceEnd = WorldLocation + WorldDirection * 10000.f;
-	bool Collision = GetWorld()->LineTraceSingleByChannel(Hit, WorldLocation, TraceEnd, ECC_GameTraceChannel5);
-
-	if (!Collision)
+	if (!GetWorld()->LineTraceSingleByChannel(Hit, WorldLocation, TraceEnd, ECC_GameTraceChannel5)) // TC5 is Detect TC
 		return;
 
-	/*--------------Target Highlight--------------*/
+	/*--------------ENABLE TARGET OUTLINE--------------*/
 	AASeedTargetPawn* Target = Cast<AASeedTargetPawn>(Hit.GetActor());
 	if (CachedTarget)
 	{
@@ -115,7 +136,7 @@ void AASeedPlayer::Tick(float DeltaTime)
 	}
 	CachedTarget = Target;
 
-	/*--------------Look Under Cursor or Target--------------*/
+	/*--------------PLAYER ROTATE(LOOK MOUSE OR TARGET)--------------*/
 	FVector TargetLocation = Hit.Location;
 	FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation);
 	SetActorRotation(FRotator(0.f, LookAt.Yaw, 0.f));
@@ -168,4 +189,15 @@ void AASeedPlayer::Fire(FName SocketName)
 	Param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
 	AASeedTestBullet* Bullet = GetWorld()->SpawnActor<AASeedTestBullet>(MuzzleLoctaion, GetActorRotation(), Param);
+
+	Bullet->SetDamage(AttributeSet->GetAttack());
+	Bullet->SetOwnerController(GetController());
+}
+
+void AASeedPlayer::OnAmmoModified()
+{
+}
+
+void AASeedPlayer::OnDamage()
+{
 }

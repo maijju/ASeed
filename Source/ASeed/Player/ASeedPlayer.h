@@ -3,47 +3,62 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "../ASeedCharacter.h"
-#include "../Weapon/ASeedTestBullet.h"
+
 #include "ASeedPlayerAnimInst.h"
+#include "../Weapon/ASeedTestBullet.h"
+#include "../AttributeSet/ASeedPlayerAttributeSet.h"
+#include "../Data/ASeedPlayerData.h"
+#include "../Enemy/ASeedTargetPawn.h"
+
+#include "EnhancedInputComponent.h"
+#include "EnhancedInputSubsystems.h"
+#include "InputActionValue.h"
+
 #include "Kismet/KismetSystemLibrary.h"
 #include "Kismet/KismetMathLibrary.h"
+
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayEffectExtension.h"
+
 #include "GameFramework/Character.h"
 #include "ASeedPlayer.generated.h"
 
 UCLASS()
-class ASEED_API AASeedPlayer : public AASeedCharacter
+class ASEED_API AASeedPlayer : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
 
 protected:
-	/** Camera boom positioning the camera behind the character */
+	/*--------------CAMERA--------------*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	USpringArmComponent* CameraBoom;
-
-	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
-	/** MappingContext */
+	/*--------------INPUT--------------*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
-
-	/** Move Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveAction;
-
-	/** Look Input Action */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AttackAction;
 
-	TObjectPtr<UASeedPlayerAnimInst> AnimInst;
-
+	/*--------------EFFECT--------------*/
+	TObjectPtr<UParticleSystemComponent> ParticleComp;
 	UPROPERTY(EditAnywhere, Category = "Effects")
 	UParticleSystem* FireEffect;
-	TObjectPtr<UParticleSystemComponent> ParticleComp;
 
-	TObjectPtr<class AASeedTargetPawn> CachedTarget;
+	/*--------------Data--------------*/
+	UPROPERTY(EditAnywhere, Category = "Data")
+	FPlayerData PlayerData;
+
+	/*--------------LOCAL VARIABLES--------------*/
+	TObjectPtr<UASeedPlayerAnimInst> AnimInst;
+	TObjectPtr<UAbilitySystemComponent> ASC;
+	TObjectPtr<UASeedPlayerAttributeSet> AttributeSet;
+	TObjectPtr<AASeedTargetPawn> CachedTarget;
 
 public:
 	AASeedPlayer();
@@ -57,7 +72,19 @@ protected:
 	void Attack();
 
 public:
+	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const
+	{
+		return ASC;
+	}
+
 	void Fire(FName SocketName);
+
+	void OnAmmoModified();
+	void OnDamage();
+	void OnGameplayStun()
+	{
+
+	}
 
 
 protected:
