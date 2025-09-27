@@ -23,3 +23,13 @@ void UASeedPlayerAnimInst::AnimNotify_AttackR()
 		PC->Fire(TEXT("Muzzle_01"));
 	}
 }
+
+void UASeedPlayerAnimInst::AnimNotify_Reloaded()
+{
+	AASeedPlayer* PC = Cast<AASeedPlayer>(TryGetPawnOwner());
+
+	if (IsValid(PC))
+	{
+		PC->Reloaded();
+	}
+}

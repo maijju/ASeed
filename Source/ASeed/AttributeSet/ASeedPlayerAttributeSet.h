@@ -16,8 +16,7 @@ class ASEED_API UASeedPlayerAttributeSet : public UASeedAttributeSet
 
 public:
 	virtual void CallbackAmmo();
-	virtual void CallbackHP();
-	virtual void CallbackMP();
+	virtual void CallbackHP(bool IsDead);
 	virtual void CallbackAttack();
 	virtual void CallbackDefense();
 	

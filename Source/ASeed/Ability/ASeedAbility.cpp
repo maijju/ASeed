@@ -4,7 +4,7 @@
 #include "ASeedAbility.h"
 #include "../AttributeSet/ASeedAttributeSet.h"
 #include "../Effect/ASeedGE_Damage.h"
-#include "../Effect/ASeedGE_ModifyAmmo.h"
+#include "../Effect/ASeedGE_ConsumeAmmo.h"
 #include "../Effect/ASeedGE_Cooldown.h"
 
 UASeedAbility::UASeedAbility()
@@ -31,11 +31,11 @@ void UASeedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
 	// 일단 발동상태로 만들어두고 발동이 불가능한 상황이라면 false로 만들어준다.
-	AbilityActive = true;
+	bActive = true;
 
 	if (!ActorInfo || !ActorInfo->AvatarActor.IsValid())
 	{
-		AbilityActive = false;
+		bActive = false;
 		// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
@@ -54,7 +54,7 @@ void UASeedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 	if (!SourceAttr)
 	{
-		AbilityActive = false;
+		bActive = false;
 		// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
@@ -68,8 +68,7 @@ void UASeedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		case ECostType::Ammo:
 			if (SourceAttr->GetAmmo() < Cost.Cost)
 			{
-				AbilityActive = false;
-				// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
+				bActive = false;
 				EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 				return;
 			}
@@ -77,8 +76,7 @@ void UASeedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		case ECostType::HP:
 			if (SourceAttr->GetHP() <= Cost.Cost)
 			{
-				AbilityActive = false;
-				// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
+				bActive = false;
 				EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 				return;
 			}
@@ -123,14 +121,14 @@ void UASeedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 
 	if (AmmoCost > 0)
 	{
-		FGameplayEffectSpecHandle	ManaCostSpec = MakeOutgoingGameplayEffectSpec(UASeedGE_ModifyAmmo::StaticClass(), GetAbilityLevel());
-		ManaCostSpec.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.ModifyAmmo")), -AmmoCost);
-		SourceASC->ApplyGameplayEffectSpecToSelf(*ManaCostSpec.Data);
+		FGameplayEffectSpecHandle AmmoCostSpec = MakeOutgoingGameplayEffectSpec(UASeedGE_ConsumeAmmo::StaticClass(), GetAbilityLevel());
+		AmmoCostSpec.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.ConsumeAmmo")), -AmmoCost);
+		SourceASC->ApplyGameplayEffectSpecToSelf(*AmmoCostSpec.Data);
 	}
 
 	if (HPCost > 0.f)
 	{
-		FGameplayEffectSpecHandle	HPCostSpec = MakeOutgoingGameplayEffectSpec(UASeedGE_Damage::StaticClass(), GetAbilityLevel());
+		FGameplayEffectSpecHandle HPCostSpec = MakeOutgoingGameplayEffectSpec(UASeedGE_Damage::StaticClass(), GetAbilityLevel());
 		HPCostSpec.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Damage")), -HPCost);
 		SourceASC->ApplyGameplayEffectSpecToSelf(*HPCostSpec.Data);
 	}

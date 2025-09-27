@@ -12,7 +12,8 @@
 UENUM()
 enum class EMontageType
 {
-	Attack
+	Attack,
+	Reload
 };
 
 UCLASS()
@@ -25,16 +26,18 @@ protected:
 	TMap<EMontageType, TObjectPtr<UAnimMontage>> MontageMap;
 
 public:
-	void PlayMontageByType(EMontageType Type)
+	void PlayMontageByType(EMontageType Type, float PlaySpeed = 1.0f)
 	{
 		if (IsAnyMontagePlaying())
 			return;
 		TObjectPtr<UAnimMontage>* Montage = MontageMap.Find(Type);
-		Montage_Play(Montage->Get());
+		Montage_Play(Montage->Get(), PlaySpeed);
 	}
 
 	UFUNCTION()
 	void AnimNotify_AttackL();
 	UFUNCTION()
 	void AnimNotify_AttackR();
+	UFUNCTION()
+	void AnimNotify_Reloaded();
 };

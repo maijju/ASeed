@@ -92,7 +92,7 @@ public:
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data);
 
 	virtual void CallbackAmmo();
-	virtual void CallbackHP();
+	virtual void CallbackHP(bool IsDead);
 	virtual void CallbackMP();
 	virtual void CallbackAttack();
 	virtual void CallbackDefense();

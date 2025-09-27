@@ -6,6 +6,12 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 
+#include "../Ability/ASeedGA_PlayerFire.h"
+#include "../Ability/ASeedGA_PlayerReload.h"
+#include "../Ability/ASeedGA_PlayerBulletHit.h"
+#include "../Effect/ASeedGE_ConsumeAmmo.h"
+#include "../Effect/ASeedGE_Reload.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -51,10 +57,8 @@ AASeedPlayer::AASeedPlayer()
 	ASC->AddAttributeSetSubobject<UASeedPlayerAttributeSet>(AttributeSet);
 }
 
-void AASeedPlayer::NotifyControllerChanged()
+void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
-	Super::NotifyControllerChanged();
-
 	// Add Input Mapping Context
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
@@ -63,14 +67,12 @@ void AASeedPlayer::NotifyControllerChanged()
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
 		}
 	}
-}
 
-void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASeedPlayer::Move);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AASeedPlayer::Attack);
+		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AASeedPlayer::Reload);
 	}
 }
 
@@ -98,6 +100,10 @@ void AASeedPlayer::BeginPlay()
 	AttributeSet->SetGold(PlayerData.Gold);
 
 	ASC->InitAbilityActorInfo(this, this);
+	
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerFire::StaticClass(), 1, INDEX_NONE, this));
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerReload::StaticClass(), 1, INDEX_NONE, this));
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerBulletHit::StaticClass(), 1, INDEX_NONE, this));
 
 	//ASC->GetGameplayAttributeValueChangeDelegate(UASeedPlayerAttributeSet::GetAttackAttribute()).AddUObject(this, &UASeedPlayerAttributeSet::AttackAttributeChangeDelegate);
 
@@ -167,31 +173,30 @@ void AASeedPlayer::Move(const FInputActionValue& Value)
 	
 void AASeedPlayer::Attack()
 {
-	AnimInst->PlayMontageByType(EMontageType::Attack);
+	if (AttributeSet->GetAmmo() > 0.0f)
+		AnimInst->PlayMontageByType(EMontageType::Attack, AttributeSet->GetAttackSpeed());
+	else
+		Reload();
+}
+
+void AASeedPlayer::Reload()
+{
+	// Reload Speed is also affected by Attack Speed
+	AnimInst->PlayMontageByType(EMontageType::Reload, AttributeSet->GetAttackSpeed());
 }
 
 void AASeedPlayer::Fire(FName SocketName)
 {
-	FVector	MuzzleLoctaion = GetMesh()->GetSocketLocation(SocketName);
+	SetSocketName(SocketName);
+	ASC->TryActivateAbilityByClass(UASeedGA_PlayerFire::StaticClass());
+	UE_LOG(LogTemp, Warning, TEXT("%f"), AttributeSet->GetAmmo());
+}
 
-	if (FireEffect)
-	{
-		UGameplayStatics::SpawnEmitterAtLocation(
-			GetWorld(),
-			FireEffect,
-			MuzzleLoctaion,
-			GetActorRotation(),
-			FVector(2.0f)
-		);
-	}
-
-	FActorSpawnParameters Param;
-	Param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-	AASeedTestBullet* Bullet = GetWorld()->SpawnActor<AASeedTestBullet>(MuzzleLoctaion, GetActorRotation(), Param);
-
-	Bullet->SetDamage(AttributeSet->GetAttack());
-	Bullet->SetOwnerController(GetController());
+void AASeedPlayer::Reloaded()
+{
+	ASC->TryActivateAbilityByClass(UASeedGA_PlayerReload::StaticClass());
+	UE_LOG(LogTemp, Warning, TEXT("Reloaded"));
+	UE_LOG(LogTemp, Warning, TEXT("%f"), AttributeSet->GetAmmo());
 }
 
 void AASeedPlayer::OnAmmoModified()
@@ -200,4 +205,9 @@ void AASeedPlayer::OnAmmoModified()
 
 void AASeedPlayer::OnDamage()
 {
+}
+
+void AASeedPlayer::Die()
+{
+
 }

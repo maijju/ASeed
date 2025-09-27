@@ -14,7 +14,6 @@ UENUM(BlueprintType)
 enum class ECostType : uint8
 {
 	Ammo,
-	MP,
 	HP
 };
 
@@ -49,7 +48,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Ability")
 	FName CooldownTag;
 
-	bool AbilityActive = false;
+	bool bActive = false;
 
 public:
 	void AddAbilityCost(ECostType Type, float Cost)
@@ -58,6 +57,11 @@ public:
 		Result.Type = Type;
 		Result.Cost = Cost;
 		CostArray.Add(Result);
+	}
+
+	void SetCooldown(float Time)
+	{
+		Cooldown = Time;
 	}
 
 protected:

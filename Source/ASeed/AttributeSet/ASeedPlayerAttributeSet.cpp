@@ -21,26 +21,27 @@ void UASeedPlayerAttributeSet::CallbackAmmo()
 	}
 }
 
-void UASeedPlayerAttributeSet::CallbackHP()
+void UASeedPlayerAttributeSet::CallbackHP(bool IsDead)
 {
-	// ASC를 얻어온다.
 	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 
 	if (ASC)
 	{
-		// Player를 얻어온다.
 		AASeedPlayer* Player = Cast<AASeedPlayer>(ASC->GetAvatarActor());
 
 		if (Player)
 		{
-			Player->OnDamage();
+			if (!IsDead)
+			{
+				Player->OnDamage();
+			}
+			else
+			{
+				Player->Die();
+			}
+			
 		}
 	}
-}
-
-void UASeedPlayerAttributeSet::CallbackMP()
-{
-
 }
 
 void UASeedPlayerAttributeSet::CallbackAttack()

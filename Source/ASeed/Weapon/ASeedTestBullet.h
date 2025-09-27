@@ -36,8 +36,6 @@ protected:
 	TObjectPtr<UProjectileMovementComponent> Movement;
 
 	TObjectPtr<UParticleSystemComponent> ParticleComp;
-
-	UParticleSystem* HitEffect;
 	UParticleSystem* TrailEffect;
 
 	UPROPERTY(EditAnywhere)

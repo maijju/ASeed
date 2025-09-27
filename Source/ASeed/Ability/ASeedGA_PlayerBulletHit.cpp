@@ -1,38 +1,26 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ASeedGA_Player_NormalAttack.h"
+#include "ASeedGA_PlayerBulletHit.h"
 #include "../AttributeSet/ASeedAttributeSet.h"
 #include "../Effect/ASeedGE_Damage.h"
 
-UASeedGA_Player_NormalAttack::UASeedGA_Player_NormalAttack()
+UASeedGA_PlayerBulletHit::UASeedGA_PlayerBulletHit()
 {
-	// NonInstanced : 인스턴스가 따로 생성되지 않고 클래스의 CDO만을 사용해서 동작시킨다.
-	// InstancedPerActor : 각 액터마다 Ability 인턴스 1개를 생성한다. 각각의 액터가 자신의
-	// 전용 어빌리티를 가지고 동작시키는 개념이다.
-	// InstancedPerExecution : Ability가 발동될 때마다 새로운 인스턴스가 생성된다.
-	// 공격이라면 공격 할 때마다 이 객체가 새로 생성되는 것이다.
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
 
 	FAbilityTriggerData	TriggerData;
-
-	TriggerData.TriggerTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Player.NormalAttack"));
-
-	// GameplayEvent : GameplayEvent가 발생했을 때 동작한다.
-	// 위에서 지정한 태그와 같은 태그가 담긴 이벤트가 ASC에 전달되면 Ability를 실행한다.
-	// OwnedTagAdded : ASC의 Owned Gameplay Tags에 TriggerTag가 추가될 때 실행한다.
-	// OwnedTagPresent : ASC에 이미 TriggerTag가 존재한다면 Ability를 항상 발동된
-	// 상태로 간주한다.
+	TriggerData.TriggerTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Player.BulletHit"));
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 
 	AbilityTriggers.Add(TriggerData);
 }
 
-void UASeedGA_Player_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UASeedGA_PlayerBulletHit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
-	if (!AbilityActive)
+	if (!bActive)
 	{
 		return;
 	}
@@ -40,7 +28,6 @@ void UASeedGA_Player_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHan
 	else if (!TriggerEventData || !TriggerEventData->Target)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Target Failed"));
-		// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
@@ -52,7 +39,6 @@ void UASeedGA_Player_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHan
 	if (!HitData)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("HitData Failed"));
-		// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
@@ -82,7 +68,6 @@ void UASeedGA_Player_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHan
 	if (!TargetASC)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("TargetASC Failed"));
-		// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
@@ -92,14 +77,12 @@ void UASeedGA_Player_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHan
 	if (!TargetAttr)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("TargetAttr Failed"));
-		// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
 		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 		return;
 	}
-	UE_LOG(LogTemp, Warning, TEXT("Player Attack Detected"));
+
 	float	Attack = SourceAttr->GetAttack();
 	float	Defense = TargetAttr->GetDefense();
-
 	float	Dmg = Attack - Defense;
 
 	Dmg = FMath::Max(1.f, Dmg);
@@ -126,31 +109,16 @@ void UASeedGA_Player_NormalAttack::ActivateAbility(const FGameplayAbilitySpecHan
 		FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Damage")),
 		-Dmg);
 
-	// 체력을 깎을 대상을 지정한다.
-	/*FGameplayAbilityTargetDataHandle	TargetData;
-
-	FGameplayAbilityTargetData_ActorArray* TargetArray =
-		new FGameplayAbilityTargetData_ActorArray;
-
-	TargetArray->TargetActorArray.Add(TargetActor);
-
-	TargetData.Add(TargetArray);*/
-
-	/*ApplyGameplayEffectSpecToTarget(Handle, ActorInfo, ActivationInfo,
-		DamageSpecHandle, TargetData);*/
-
 		// 위의 방법으로도 가능하고 아래의 방법으로도 가능하다.
 	SourceASC->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), TargetASC);
 
-	/*FGameplayCueParameters	Param;
-	Param.Instigator = GetAvatarActorFromActorInfo();
-	Param.EffectCauser = GetOwningActorFromActorInfo();
-	Param.Location = HitData->HitResult.ImpactPoint;
+	/*--------------CUE--------------*/
+	FGameplayCueParameters CueParam;
+	CueParam.Instigator = GetAvatarActorFromActorInfo();
+	CueParam.EffectCauser = GetOwningActorFromActorInfo();
+	CueParam.Location = HitData->HitResult.ImpactPoint;
 
-	SourceASC->ExecuteGameplayCue(FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.Player.Magician.Attack")), Param);*/
+	SourceASC->ExecuteGameplayCue(FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.PlayerBasicBullet")), CueParam);
 
-
-	// 활성 어빌리티가 끝날때에는 반드시 EndAbility를 호출해야 한다.
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }
-

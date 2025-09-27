@@ -44,6 +44,8 @@ protected:
 	UInputAction* MoveAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* AttackAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ReloadAction;
 
 	/*--------------EFFECT--------------*/
 	TObjectPtr<UParticleSystemComponent> ParticleComp;
@@ -59,6 +61,7 @@ protected:
 	TObjectPtr<UAbilitySystemComponent> ASC;
 	TObjectPtr<UASeedPlayerAttributeSet> AttributeSet;
 	TObjectPtr<AASeedTargetPawn> CachedTarget;
+	FName CurrentWeaponSocketName;
 
 public:
 	AASeedPlayer();
@@ -69,7 +72,8 @@ protected:
 
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
-	void Attack();
+	void Attack(); // pair with Fire
+	void Reload(); // pair with Reloaded
 
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const
@@ -78,22 +82,27 @@ public:
 	}
 
 	void Fire(FName SocketName);
+	void Reloaded();
 
 	void OnAmmoModified();
 	void OnDamage();
+	void Die();
 	void OnGameplayStun()
 	{
 
 	}
 
+public:
+	FName GetSocketName()
+	{
+		return CurrentWeaponSocketName;
+	}
+
+	void SetSocketName(FName SocketName)
+	{
+		CurrentWeaponSocketName = SocketName;
+	}
 
 protected:
-	virtual void NotifyControllerChanged() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-
-public:
-	/** Returns CameraBoom subobject **/
-	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
-	/** Returns FollowCamera subobject **/
-	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 };

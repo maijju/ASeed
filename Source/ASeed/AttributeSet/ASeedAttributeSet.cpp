@@ -7,15 +7,18 @@ void UASeedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectM
 {
 	Super::PostGameplayEffectExecute(Data);
 	
-	if (Data.EvaluatedData.Attribute == GetHPAttribute())
+	if (Data.EvaluatedData.Attribute == GetAmmoAttribute())
 	{
 		CallbackAmmo();
 	}
 
 	else if (Data.EvaluatedData.Attribute == GetHPAttribute())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("HP Change Detected"));
-		CallbackHP();
+		SetHP(FMath::Clamp(GetHP(), 0.0f, GetHPMax()));
+
+		bool IsDead = GetHP() <= 0.0f ? true : false;
+
+		CallbackHP(IsDead);
 	}
 }
 
@@ -23,7 +26,7 @@ void UASeedAttributeSet::CallbackAmmo()
 {
 }
 
-void UASeedAttributeSet::CallbackHP()
+void UASeedAttributeSet::CallbackHP(bool IsDead)
 {
 
 }

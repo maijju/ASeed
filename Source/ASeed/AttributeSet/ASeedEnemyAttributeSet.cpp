@@ -4,7 +4,7 @@
 #include "ASeedEnemyAttributeSet.h"
 #include "../Enemy/ASeedEnemy.h"
 
-void UASeedEnemyAttributeSet::CallbackHP()
+void UASeedEnemyAttributeSet::CallbackHP(bool IsDead)
 {
 	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 
@@ -15,7 +15,14 @@ void UASeedEnemyAttributeSet::CallbackHP()
 
 		if (Enemy)
 		{
-			Enemy->OnDamage();
+			if (!IsDead)
+			{
+				Enemy->OnDamage();
+			}
+			else
+			{
+				Enemy->Die();
+			}
 		}
 	}
 }

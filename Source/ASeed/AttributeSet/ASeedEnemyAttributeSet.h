@@ -15,6 +15,6 @@ class ASEED_API UASeedEnemyAttributeSet : public UASeedAttributeSet
 	GENERATED_BODY()
 
 public:
-	virtual void CallbackHP();
+	virtual void CallbackHP(bool IsDead);
 	
 };

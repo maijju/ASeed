@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "ASeedAbility.h"
-#include "ASeedGA_Player_NormalAttack.generated.h"
+#include "ASeedGA_PlayerReload.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ASEED_API UASeedGA_Player_NormalAttack : public UASeedAbility
+class ASEED_API UASeedGA_PlayerReload : public UASeedAbility
 {
 	GENERATED_BODY()
 
 public:
-	UASeedGA_Player_NormalAttack();
+	UASeedGA_PlayerReload();
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData);

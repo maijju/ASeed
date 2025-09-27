@@ -42,4 +42,5 @@ public:
 	}
 
 	void OnDamage();
+	void Die();
 };
