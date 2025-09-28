@@ -13,7 +13,8 @@ UENUM()
 enum class EMontageType
 {
 	Attack,
-	Reload
+	Reload,
+	Rolling
 };
 
 UCLASS()
@@ -28,10 +29,16 @@ protected:
 public:
 	void PlayMontageByType(EMontageType Type, float PlaySpeed = 1.0f)
 	{
-		if (IsAnyMontagePlaying())
-			return;
 		TObjectPtr<UAnimMontage>* Montage = MontageMap.Find(Type);
-		Montage_Play(Montage->Get(), PlaySpeed);
+		if (Montage)
+		{
+			// Rolling can cancel auto
+			if (IsAnyMontagePlaying() && Type != EMontageType::Rolling)
+				return;
+			Montage_Play(Montage->Get(), PlaySpeed);
+			UE_LOG(LogTemp, Warning, TEXT("%s is playing"), *Montage->GetFName().ToString());
+		}
+			
 	}
 
 	UFUNCTION()

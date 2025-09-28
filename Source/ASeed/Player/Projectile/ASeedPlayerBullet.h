@@ -11,46 +11,63 @@
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayTagsManager.h"
 #include "GameplayEffectExtension.h"
+
+#include "../../Data/ASeedPlayerData.h"
 
 #include "Particles/ParticleSystem.h"
 #include "Particles/ParticleSystemComponent.h"
 
-#include "ASeedTestBullet.generated.h"
+#include "ASeedPlayerBullet.generated.h"
 
 UCLASS()
-class ASEED_API AASeedTestBullet : public AActor
+class ASEED_API AASeedPlayerBullet : public AActor
 {
 	GENERATED_BODY()
 
 public:
-	AASeedTestBullet();
+	AASeedPlayerBullet();
 
 protected:
+	/*--------BASIC COMPS--------*/
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBoxComponent> Body;
-
-	class AController* OwnerController;
-
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> Movement;
 
-	TObjectPtr<UParticleSystemComponent> ParticleComp;
-	UParticleSystem* TrailEffect;
+	/*--------PRIMARY DATA--------*/
+	UPROPERTY()
+	const UASeedPlayerBulletData* BulletData;
 
+	/*--------TRAIL FX--------*/
+	TObjectPtr<UParticleSystemComponent> ParticleComp;
+
+	/*--------LOCAL VARIABLES--------*/
+	class AController* OwnerController;
 	UPROPERTY(EditAnywhere)
 	float LifeDuration = 1;
-
 	float Damage = 0;
 
 protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:
-	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
+	void ApplyTrailEffect()
+	{
+		if (!BulletData || !BulletData->TrailEffect)
+			return;
+		UGameplayStatics::SpawnEmitterAttached(
+			BulletData->TrailEffect,
+			RootComponent,
+			NAME_None,
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			EAttachLocation::KeepRelativeOffset,
+			true
+		);
+	}
+
+public:
 	void SetDamage(float Amount)
 	{
 		Damage = Amount;
@@ -60,10 +77,14 @@ public:
 	{
 		OwnerController = Controller;
 	}
+	
+	void SetBulletData(const UASeedPlayerBulletData* Data)
+	{
+		BulletData = Data;
+		ApplyTrailEffect();
+	}
 
 public:
-	// ProjectileMovement를 이용하여 움직이는 물체가 다른 물체와 부딪혀서 더이상 움직일
-	// 수 없을 때 호출되게 할 함수이다.
 	UFUNCTION()
 	void ProjectileStop(const FHitResult& Hit);
 };

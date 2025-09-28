@@ -28,6 +28,13 @@ void UASeedGA_PlayerReload::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 	UAbilitySystemComponent* PlayerASC = GetAbilitySystemComponentFromActorInfo();
 	const UASeedAttributeSet* PlayerAttr = PlayerASC->GetSet<UASeedAttributeSet>();
+
+	if (PlayerAttr->GetAmmo() == PlayerAttr->GetAmmoMax())
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
 	FGameplayEffectSpecHandle SpecHandle = PlayerASC->MakeOutgoingSpec(UASeedGE_Reload::StaticClass(), 1.0f, PlayerASC->MakeEffectContext());
 
 	if (SpecHandle.IsValid())

@@ -1,11 +1,11 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ASeedTestBullet.h"
+#include "ASeedPlayerBullet.h"
+#include "../../Data/ASeedPlayerData.h"
 
-AASeedTestBullet::AASeedTestBullet()
+AASeedPlayerBullet::AASeedPlayerBullet()
 {
-	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	/*--------------BODY--------------*/
@@ -13,46 +13,22 @@ AASeedTestBullet::AASeedTestBullet()
 	SetRootComponent(Body);
 	Body->SetBoxExtent(FVector(60.0, 60.0, 60.0));
 	Body->SetCollisionProfileName(TEXT("PlayerAttack"));
-	
+
 	/*--------------MOVEMENT--------------*/
 	Movement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));
 	Movement->SetUpdatedComponent(Body);
 	Movement->ProjectileGravityScale = 0.f;
 	Movement->InitialSpeed = 2000.f;
-	Movement->OnProjectileStop.AddDynamic(this, &AASeedTestBullet::ProjectileStop);
+	Movement->OnProjectileStop.AddDynamic(this, &AASeedPlayerBullet::ProjectileStop);
 
-	/*--------------EFFECT--------------*/
+	/*--------------PARTICLE--------------*/
 	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
 	ParticleComp->SetupAttachment(RootComponent);
 	ParticleComp->bAutoActivate = false;
-
-	static ConstructorHelpers::FObjectFinder<UParticleSystem>
-		Trail(TEXT("/Script/Engine.ParticleSystem'/Game/FX/Particles/Abilities/Primary/FX/P_TwinBlast_Primary_Trail.P_TwinBlast_Primary_Trail'"));
-	if (Trail.Succeeded())
-		TrailEffect = Trail.Object;
-}
-
-// Called when the game starts or when spawned
-void AASeedTestBullet::BeginPlay()
-{
-	Super::BeginPlay();
-
-	if (TrailEffect)
-	{
-		UGameplayStatics::SpawnEmitterAttached(
-			TrailEffect,
-			RootComponent,
-			NAME_None,
-			FVector::ZeroVector,
-			FRotator::ZeroRotator,
-			EAttachLocation::KeepRelativeOffset,
-			true
-		);
-	}
 }
 
 // Called every frame
-void AASeedTestBullet::Tick(float DeltaTime)
+void AASeedPlayerBullet::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
@@ -63,10 +39,10 @@ void AASeedTestBullet::Tick(float DeltaTime)
 	{
 		Destroy();
 	}
-		
+
 }
 
-void AASeedTestBullet::ProjectileStop(const FHitResult& Hit)
+void AASeedPlayerBullet::ProjectileStop(const FHitResult& Hit)
 {
 	IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwnerController->GetPawn());
 
@@ -80,6 +56,14 @@ void AASeedTestBullet::ProjectileStop(const FHitResult& Hit)
 			EventData.Target = Hit.GetActor();
 			EventData.Instigator = OwnerController->GetPawn();
 			EventData.EventTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Player.BulletHit"));
+
+			/*--------------------------------------------------*/
+			/*----------------HARD CODE WARNING-----------------*/
+			/*----------INDEX 0 IS ONLY USE AS EFFECT-----------*/
+			/*----------INDEX 1 IS ONLY USE AS CUE--------------*/
+			/*--------------------------------------------------*/
+			EventData.TargetTags.AddTag(BulletData->GameplayEffectTag);
+			EventData.TargetTags.AddTag(BulletData->GameplayBulletHitCueTag);
 
 			FGameplayAbilityTargetData_SingleTargetHit* TargetData =
 				new FGameplayAbilityTargetData_SingleTargetHit(Hit);

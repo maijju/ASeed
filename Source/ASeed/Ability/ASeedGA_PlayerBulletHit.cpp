@@ -84,6 +84,7 @@ void UASeedGA_PlayerBulletHit::ActivateAbility(const FGameplayAbilitySpecHandle 
 	float	Attack = SourceAttr->GetAttack();
 	float	Defense = TargetAttr->GetDefense();
 	float	Dmg = Attack - Defense;
+	FGameplayTag EffectTag = TriggerEventData->TargetTags.GetByIndex(0);
 
 	Dmg = FMath::Max(1.f, Dmg);
 
@@ -105,20 +106,19 @@ void UASeedGA_PlayerBulletHit::ActivateAbility(const FGameplayAbilitySpecHandle 
 
 	// SetByCaller에 들어갈 데미지를 지정한다.
 	// 체력을 깎아야 하기 때문에 -를 붙여준다.
-	DamageSpecHandle.Data->SetSetByCallerMagnitude(
-		FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Damage")),
-		-Dmg);
+	DamageSpecHandle.Data->SetSetByCallerMagnitude(EffectTag, -Dmg);
 
 		// 위의 방법으로도 가능하고 아래의 방법으로도 가능하다.
 	SourceASC->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), TargetASC);
 
 	/*--------------CUE--------------*/
 	FGameplayCueParameters CueParam;
+	FGameplayTag CueTag = TriggerEventData->TargetTags.GetByIndex(1);
 	CueParam.Instigator = GetAvatarActorFromActorInfo();
 	CueParam.EffectCauser = GetOwningActorFromActorInfo();
 	CueParam.Location = HitData->HitResult.ImpactPoint;
 
-	SourceASC->ExecuteGameplayCue(FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.PlayerBasicBullet")), CueParam);
+	SourceASC->ExecuteGameplayCue(CueTag, CueParam);
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

@@ -5,9 +5,14 @@
 #include "CoreMinimal.h"
 
 #include "ASeedPlayerAnimInst.h"
-#include "../Weapon/ASeedTestBullet.h"
+
+#include "Projectile/ASeedPlayerBullet.h"
+#include "Projectile/ASeedPlayerProjectileComponent.h"
+#include "Skill/ASeedPlayerSkillComponent.h"
+
 #include "../AttributeSet/ASeedPlayerAttributeSet.h"
 #include "../Data/ASeedPlayerData.h"
+
 #include "../Enemy/ASeedTargetPawn.h"
 
 #include "EnhancedInputComponent.h"
@@ -46,22 +51,35 @@ protected:
 	UInputAction* AttackAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ReloadAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* Skill1Action;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* Skill2Action;
 
-	/*--------------EFFECT--------------*/
-	TObjectPtr<UParticleSystemComponent> ParticleComp;
-	UPROPERTY(EditAnywhere, Category = "Effects")
-	UParticleSystem* FireEffect;
-
-	/*--------------Data--------------*/
-	UPROPERTY(EditAnywhere, Category = "Data")
+	/*--------------STAT--------------*/
+	UPROPERTY(EditAnywhere, Category = "Stat")
 	FPlayerData PlayerData;
+
+	/*--------------BULLET--------------*/
+	UPROPERTY(VisibleAnywhere, Category = "Bullet")
+	TObjectPtr<UASeedPlayerProjectileComponent> ProjComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName BulletKey = FName("Default");
+
+	/*--------------SKILL--------------*/
+	UPROPERTY(VisibleAnywhere, Category = "Skill")
+	TObjectPtr<UASeedPlayerSkillComponent> SkillComp;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName Skill1Key = FName("Rolling");
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	FName Skill2Key;
 
 	/*--------------LOCAL VARIABLES--------------*/
 	TObjectPtr<UASeedPlayerAnimInst> AnimInst;
 	TObjectPtr<UAbilitySystemComponent> ASC;
 	TObjectPtr<UASeedPlayerAttributeSet> AttributeSet;
 	TObjectPtr<AASeedTargetPawn> CachedTarget;
-	FName CurrentWeaponSocketName;
+	FVector2D CurrentKeyVector;
 
 public:
 	AASeedPlayer();
@@ -76,31 +94,36 @@ protected:
 	void Reload(); // pair with Reloaded
 
 public:
+	void Fire(FName SocketName);
+	void Reloaded();
+
+	void Skill1();
+	void Skill2();
+
+	void Die();
+
+public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const
 	{
 		return ASC;
 	}
 
-	void Fire(FName SocketName);
-	void Reloaded();
-
-	void OnAmmoModified();
-	void OnDamage();
-	void Die();
-	void OnGameplayStun()
+	UASeedPlayerAnimInst* GetPlayerAnimInstance()
 	{
+		return AnimInst;
+	}
 
+	FVector2D GetCurrentKeyVector()
+	{
+		return CurrentKeyVector;
 	}
 
 public:
-	FName GetSocketName()
+	void OnAmmoModified();
+	void OnDamage();
+	void OnGameplayStun()
 	{
-		return CurrentWeaponSocketName;
-	}
 
-	void SetSocketName(FName SocketName)
-	{
-		CurrentWeaponSocketName = SocketName;
 	}
 
 protected:

@@ -33,4 +33,5 @@ void AASeedEnemy::OnDamage()
 void AASeedEnemy::Die()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Dead"));
+	Destroy();
 }

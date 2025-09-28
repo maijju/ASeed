@@ -3,7 +3,7 @@
 
 #include "ASeedGA_PlayerFire.h"
 #include "../AttributeSet/ASeedAttributeSet.h"
-#include "../Weapon/ASeedTestBullet.h"
+#include "../Player/Projectile/ASeedPlayerBullet.h"
 #include "../Player/ASeedPlayer.h"
 
 UASeedGA_PlayerFire::UASeedGA_PlayerFire()
@@ -34,14 +34,24 @@ void UASeedGA_PlayerFire::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 	{
 		/*--------------INIT--------------*/
 		UAbilitySystemComponent* PlayerASC = GetAbilitySystemComponentFromActorInfo();
-		FVector MuzzleLocation = Player->GetMesh()->GetSocketLocation(Player->GetSocketName());
+		const UASeedPlayerBulletData* BulletData = Cast<UASeedPlayerBulletData>(TriggerEventData->OptionalObject);
+		FVector MuzzleLocation;
+		if (!BulletData)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("BulletData is nullptr (in ability)"));
+		}
+		else
+		{
+			MuzzleLocation = BulletData->Location;
+		}
 
 		/*--------------SPAWN BULLET--------------*/
 		FActorSpawnParameters Param;
 		Param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		AASeedTestBullet* Bullet = GetWorld()->SpawnActor<AASeedTestBullet>(MuzzleLocation, Player->GetActorRotation(), Param);
+		AASeedPlayerBullet* Bullet = GetWorld()->SpawnActor<AASeedPlayerBullet>(MuzzleLocation, Player->GetActorRotation(), Param);
 		Bullet->SetDamage(PlayerASC->GetSet<UASeedAttributeSet>()->GetAttack());
+		Bullet->SetBulletData(BulletData);
 		Bullet->SetOwnerController(Player->GetController());
 
 		/*--------------CUE--------------*/
@@ -49,8 +59,7 @@ void UASeedGA_PlayerFire::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		CueParam.Instigator = Player;
 		CueParam.EffectCauser = Player;
 		CueParam.Location = MuzzleLocation;
-
-		PlayerASC->ExecuteGameplayCue(FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.PlayerBasicMuzzleFlash")), CueParam);
+		PlayerASC->ExecuteGameplayCue(BulletData->GameplayMuzzleFlashCueTag, CueParam);
 	}
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);

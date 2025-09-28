@@ -9,8 +9,6 @@
 #include "../Ability/ASeedGA_PlayerFire.h"
 #include "../Ability/ASeedGA_PlayerReload.h"
 #include "../Ability/ASeedGA_PlayerBulletHit.h"
-#include "../Effect/ASeedGE_ConsumeAmmo.h"
-#include "../Effect/ASeedGE_Reload.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -46,15 +44,16 @@ AASeedPlayer::AASeedPlayer()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	/*--------------EFFECT--------------*/
-	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
-	ParticleComp->SetupAttachment(RootComponent);
-	ParticleComp->bAutoActivate = false;
-
 	/*--------------GAS--------------*/
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	AttributeSet = CreateDefaultSubobject<UASeedPlayerAttributeSet>(TEXT("AttributeSet"));
 	ASC->AddAttributeSetSubobject<UASeedPlayerAttributeSet>(AttributeSet);
+
+	/*--------------SKILL--------------*/
+	SkillComp = CreateDefaultSubobject<UASeedPlayerSkillComponent>(TEXT("SkillComponent"));
+
+	/*--------------SKILL--------------*/
+	ProjComp = CreateDefaultSubobject<UASeedPlayerProjectileComponent>(TEXT("ProjectileComponent"));
 }
 
 void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -73,6 +72,8 @@ void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASeedPlayer::Move);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AASeedPlayer::Attack);
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AASeedPlayer::Reload);
+		EnhancedInputComponent->BindAction(Skill1Action, ETriggerEvent::Started, this, &AASeedPlayer::Skill1);
+		EnhancedInputComponent->BindAction(Skill2Action, ETriggerEvent::Started, this, &AASeedPlayer::Skill2);
 	}
 }
 
@@ -85,7 +86,6 @@ void AASeedPlayer::BeginPlay()
 	AnimInst = Cast<UASeedPlayerAnimInst>(GetMesh()->GetAnimInstance());
 
 	/*--------------GAS--------------*/
-	//AttributeSet->SetName(PlayerController->GetPlayerName());
 	AttributeSet->SetAttack(PlayerData.Attack);
 	AttributeSet->SetAmmo(PlayerData.Ammo);
 	AttributeSet->SetAmmoMax(PlayerData.AmmoMax);
@@ -104,12 +104,15 @@ void AASeedPlayer::BeginPlay()
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerFire::StaticClass(), 1, INDEX_NONE, this));
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerReload::StaticClass(), 1, INDEX_NONE, this));
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerBulletHit::StaticClass(), 1, INDEX_NONE, this));
-
 	//ASC->GetGameplayAttributeValueChangeDelegate(UASeedPlayerAttributeSet::GetAttackAttribute()).AddUObject(this, &UASeedPlayerAttributeSet::AttackAttributeChangeDelegate);
 
 	// 특정 태그가 발생되었을 때 호출해줄 함수를 지정할 수 있다.
 	// 태그가 제거될 때도 들어온다.
 	//ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(TEXT("Custom.State.Stun")), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AASeedPlayer::OnGameplayStun);
+
+	/*--------------PROJECTILE COMPONENT--------------*/
+	ProjComp->UpdateBulletDataByKey(BulletKey);
+
 }
 
 void AASeedPlayer::Tick(float DeltaTime)
@@ -150,8 +153,7 @@ void AASeedPlayer::Tick(float DeltaTime)
 
 void AASeedPlayer::Move(const FInputActionValue& Value)
 {
-	// input is a Vector2D
-	FVector2D MovementVector = Value.Get<FVector2D>();
+	CurrentKeyVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
 	{
@@ -166,8 +168,8 @@ void AASeedPlayer::Move(const FInputActionValue& Value)
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
 		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
-		AddMovementInput(RightDirection, MovementVector.X);
+		AddMovementInput(ForwardDirection, CurrentKeyVector.Y);
+		AddMovementInput(RightDirection, CurrentKeyVector.X);
 	}
 }
 	
@@ -187,8 +189,7 @@ void AASeedPlayer::Reload()
 
 void AASeedPlayer::Fire(FName SocketName)
 {
-	SetSocketName(SocketName);
-	ASC->TryActivateAbilityByClass(UASeedGA_PlayerFire::StaticClass());
+	ProjComp->TryFireBullet(SocketName);
 	UE_LOG(LogTemp, Warning, TEXT("%f"), AttributeSet->GetAmmo());
 }
 
@@ -199,6 +200,21 @@ void AASeedPlayer::Reloaded()
 	UE_LOG(LogTemp, Warning, TEXT("%f"), AttributeSet->GetAmmo());
 }
 
+void AASeedPlayer::Skill1()
+{
+	SkillComp->TryActivateSkill(Skill1Key);
+}
+
+void AASeedPlayer::Skill2()
+{
+	SkillComp->TryActivateSkill(Skill2Key);
+}
+
+void AASeedPlayer::Die()
+{
+
+}
+
 void AASeedPlayer::OnAmmoModified()
 {
 }
@@ -207,7 +223,3 @@ void AASeedPlayer::OnDamage()
 {
 }
 
-void AASeedPlayer::Die()
-{
-
-}

@@ -2,9 +2,16 @@
 
 #pragma once
 
+#include "AbilitySystemComponent.h"
+#include "AbilitySystemInterface.h"
+#include "AbilitySystemBlueprintLibrary.h"
+#include "GameplayEffectExtension.h"
+
 #include "ASeedPlayerData.generated.h"
 
-// Format For Player Stats
+/*---------------------------------------*/
+/*--------------PLAYER STAT--------------*/ 
+/*---------------------------------------*/
 USTRUCT(BlueprintType)
 struct FPlayerData
 {
@@ -49,4 +56,81 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	int32		Gold = 0;
+};
+
+/*---------------------------------------*/
+/*--------------PLAYER SKILL-------------*/
+/*---------------------------------------*/
+UCLASS(BlueprintType)
+class ASEED_API UASeedPlayerSkillCost : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+	float Cooldown;
+	UPROPERTY()
+	float AmmoCost;
+};
+
+USTRUCT(BlueprintType)
+struct ASEED_API FPlayerSkillData : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+	FGameplayTag AbilityTag;
+
+	UPROPERTY(EditAnywhere)
+	float Cooldown;
+
+	UPROPERTY(EditAnywhere)
+	float AmmoCost;
+};
+
+/*---------------------------------------*/
+/*--------------BULLET DATA--------------*/
+/*---------------------------------------*/
+UCLASS()
+class ASEED_API UASeedPlayerBulletData : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+	FVector Location;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayEffectTag;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayMuzzleFlashCueTag;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayBulletHitCueTag;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* TrailEffect;
+
+	UPROPERTY(EditAnywhere)
+	int32 PierceCount;
+};
+
+USTRUCT(BlueprintType)
+struct ASEED_API FPlayerBulletData : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayEffectTag;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayMuzzleFlashCueTag;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayBulletHitCueTag;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* TrailEffect;
+
+	UPROPERTY(EditAnywhere)
+	int32 PierceCount;
 };

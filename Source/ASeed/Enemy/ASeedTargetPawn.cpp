@@ -12,12 +12,12 @@ AASeedTargetPawn::AASeedTargetPawn()
 
 	Body = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Body"));
 	SetRootComponent(Body);
+	Body->SetCollisionProfileName(TEXT("Enemy"));
 	Body->SetCapsuleHalfHeight(92.f);
 	Body->SetCapsuleRadius(32.f);
 	Body->SetRelativeRotation(FRotator(0.0, 90.0, 0.0));
 
 	MeshComp = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("Mesh"));
-	MeshComp->SetCollisionProfileName(TEXT("Enemy"));
 	MeshComp->bRenderCustomDepth = true;
 	MeshComp->SetupAttachment(Body);
 	MeshComp->SetRelativeLocation(FVector(0.0, 0.0, -92.0));
