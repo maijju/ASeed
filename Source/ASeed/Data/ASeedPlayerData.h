@@ -34,10 +34,10 @@ public:
 	int32		Defense;
 
 	UPROPERTY(EditAnywhere)
-	int32		HP;
+	float		HP;
 
 	UPROPERTY(EditAnywhere)
-	int32		HPMax;
+	float		HPMax;
 
 	UPROPERTY(EditAnywhere)
 	float		AttackRange;

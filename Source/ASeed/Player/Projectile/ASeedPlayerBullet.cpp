@@ -20,11 +20,6 @@ AASeedPlayerBullet::AASeedPlayerBullet()
 	Movement->ProjectileGravityScale = 0.f;
 	Movement->InitialSpeed = 2000.f;
 	Movement->OnProjectileStop.AddDynamic(this, &AASeedPlayerBullet::ProjectileStop);
-
-	/*--------------PARTICLE--------------*/
-	ParticleComp = CreateDefaultSubobject<UParticleSystemComponent>(TEXT("ParticleComp"));
-	ParticleComp->SetupAttachment(RootComponent);
-	ParticleComp->bAutoActivate = false;
 }
 
 // Called every frame
@@ -39,7 +34,6 @@ void AASeedPlayerBullet::Tick(float DeltaTime)
 	{
 		Destroy();
 	}
-
 }
 
 void AASeedPlayerBullet::ProjectileStop(const FHitResult& Hit)

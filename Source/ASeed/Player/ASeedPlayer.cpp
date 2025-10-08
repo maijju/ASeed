@@ -52,7 +52,7 @@ AASeedPlayer::AASeedPlayer()
 	/*--------------SKILL--------------*/
 	SkillComp = CreateDefaultSubobject<UASeedPlayerSkillComponent>(TEXT("SkillComponent"));
 
-	/*--------------SKILL--------------*/
+	/*--------------PROJECTILE--------------*/
 	ProjComp = CreateDefaultSubobject<UASeedPlayerProjectileComponent>(TEXT("ProjectileComponent"));
 }
 
@@ -183,6 +183,8 @@ void AASeedPlayer::Attack()
 
 void AASeedPlayer::Reload()
 {
+	if (AttributeSet->GetAmmo() == AttributeSet->GetAmmoMax())
+		return;
 	// Reload Speed is also affected by Attack Speed
 	AnimInst->PlayMontageByType(EMontageType::Reload, AttributeSet->GetAttackSpeed());
 }
@@ -195,6 +197,7 @@ void AASeedPlayer::Fire(FName SocketName)
 
 void AASeedPlayer::Reloaded()
 {
+	UE_LOG(LogTemp, Warning, TEXT("Reload Ability Activated"))
 	ASC->TryActivateAbilityByClass(UASeedGA_PlayerReload::StaticClass());
 	UE_LOG(LogTemp, Warning, TEXT("Reloaded"));
 	UE_LOG(LogTemp, Warning, TEXT("%f"), AttributeSet->GetAmmo());

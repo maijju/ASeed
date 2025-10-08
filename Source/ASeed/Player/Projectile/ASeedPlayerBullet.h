@@ -40,9 +40,6 @@ protected:
 	UPROPERTY()
 	const UASeedPlayerBulletData* BulletData;
 
-	/*--------TRAIL FX--------*/
-	TObjectPtr<UParticleSystemComponent> ParticleComp;
-
 	/*--------LOCAL VARIABLES--------*/
 	class AController* OwnerController;
 	UPROPERTY(EditAnywhere)

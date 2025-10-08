@@ -80,6 +80,7 @@ protected:
 	TObjectPtr<UASeedPlayerAttributeSet> AttributeSet;
 	TObjectPtr<AASeedTargetPawn> CachedTarget;
 	FVector2D CurrentKeyVector;
+	bool bRotationFreeze = false;
 
 public:
 	AASeedPlayer();

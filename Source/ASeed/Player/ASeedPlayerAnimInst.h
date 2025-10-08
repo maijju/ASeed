@@ -26,6 +26,9 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Montages")
 	TMap<EMontageType, TObjectPtr<UAnimMontage>> MontageMap;
 
+	UPROPERTY(BlueprintReadOnly)
+	FName RollingSectionName;
+
 public:
 	void PlayMontageByType(EMontageType Type, float PlaySpeed = 1.0f)
 	{
@@ -35,10 +38,20 @@ public:
 			// Rolling can cancel auto
 			if (IsAnyMontagePlaying() && Type != EMontageType::Rolling)
 				return;
+
 			Montage_Play(Montage->Get(), PlaySpeed);
+			if (Type == EMontageType::Rolling)
+			{
+				Montage_JumpToSection(RollingSectionName, Montage->Get());
+			}
+
 			UE_LOG(LogTemp, Warning, TEXT("%s is playing"), *Montage->GetFName().ToString());
 		}
-			
+	}
+
+	void SetRollingSectionName(FName SectionName)
+	{
+		RollingSectionName = SectionName;
 	}
 
 	UFUNCTION()

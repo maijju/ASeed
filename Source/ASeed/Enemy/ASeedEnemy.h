@@ -5,6 +5,9 @@
 #include "CoreMinimal.h"
 #include "ASeedTargetPawn.h"
 
+#include "GameFramework/FloatingPawnMovement.h"
+#include "ASeedEnemyAnimInst.h"
+
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
 #include "AbilitySystemBlueprintLibrary.h"
@@ -26,8 +29,21 @@ public:
 	AASeedEnemy();
 
 protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	FName Key;
+	TSoftObjectPtr<UDataTable> DataRef;
+	UPROPERTY();
+	UDataTable* Data;
+
+	TObjectPtr<UASeedEnemyAnimInst> AnimInst;
 	TObjectPtr<UAbilitySystemComponent> ASC;
 	TObjectPtr<UASeedEnemyAttributeSet> AttributeSet;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
+	UFloatingPawnMovement* MovementComp;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
+	class UBehaviorTree* BehaviorTree;
 
 protected:
 	virtual void BeginPlay() override;
@@ -39,6 +55,13 @@ public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const
 	{
 		return ASC;
+	}
+
+	void ChangeAnimationState(EEnemyAnimState State)
+	{
+		if (!AnimInst)
+			return;
+		 AnimInst->SetAnimState(State);
 	}
 
 	void OnDamage();

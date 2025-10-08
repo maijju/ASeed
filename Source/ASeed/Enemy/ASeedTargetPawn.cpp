@@ -9,7 +9,6 @@ AASeedTargetPawn::AASeedTargetPawn()
  	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
 
-
 	Body = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Body"));
 	SetRootComponent(Body);
 	Body->SetCollisionProfileName(TEXT("Enemy"));

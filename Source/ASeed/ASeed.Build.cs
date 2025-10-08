@@ -14,7 +14,7 @@ public class ASeed : ModuleRules
 			"Engine",
 			"InputCore",
 			"EnhancedInput",
-			
+            "NavigationSystem",
 			"Niagara",
 			"GameplayCameras",
 			"GameplayTags",

@@ -35,8 +35,7 @@ void UASeedGA_PlayerReload::ActivateAbility(const FGameplayAbilitySpecHandle Han
 		return;
 	}
 
-	FGameplayEffectSpecHandle SpecHandle = PlayerASC->MakeOutgoingSpec(UASeedGE_Reload::StaticClass(), 1.0f, PlayerASC->MakeEffectContext());
-
+	FGameplayEffectSpecHandle SpecHandle = MakeOutgoingGameplayEffectSpec(UASeedGE_Reload::StaticClass(), 1.0f);
 	if (SpecHandle.IsValid())
 	{
 		float AmmoMax = PlayerAttr->GetAmmoMax();
@@ -48,6 +47,9 @@ void UASeedGA_PlayerReload::ActivateAbility(const FGameplayAbilitySpecHandle Han
 
 		PlayerASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
 	}
+	FGameplayCueParameters CueParam;
+	CueParam.Location = GetAvatarActorFromActorInfo()->GetActorLocation();
+	PlayerASC->ExecuteGameplayCue(FGameplayTag::RequestGameplayTag(TEXT("GameplayCue.PlayerReload")), CueParam);
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

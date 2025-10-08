@@ -17,10 +17,10 @@ public:
 
 protected:
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<USkeletalMeshComponent> MeshComp;
+	TObjectPtr<UCapsuleComponent> Body;
 
 	UPROPERTY(EditAnywhere)
-	TObjectPtr<UCapsuleComponent> Body;
+	TObjectPtr<USkeletalMeshComponent> MeshComp;
 
 protected:
 	// Called when the game starts or when spawned

@@ -42,6 +42,18 @@ void UASeedGA_PlayerRolling::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 	/*---------ROLLING (PHYSICS APPLYING)---------*/
     FVector2D KeyVector = Player->GetCurrentKeyVector();
 	FVector RollDirection(KeyVector.Y, KeyVector.X, 0);
+	
+	FName SectionName;
+	if (FMath::IsNearlyEqual(KeyVector.Y, 1.0))
+		SectionName = "Forward";
+	else if (FMath::IsNearlyEqual(KeyVector.Y, -1.0))
+		SectionName = "Backward";
+	else if (FMath::IsNearlyEqual(KeyVector.X, 1.0))
+		SectionName = "Right";
+	else if (FMath::IsNearlyEqual(KeyVector.X, -1.0))
+		SectionName = "Left";
+
+	AnimInst->SetRollingSectionName(SectionName);
 
 	// If no key Input, then Rolling to character forward vector
 	if (RollDirection.IsNearlyZero())
