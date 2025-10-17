@@ -30,10 +30,11 @@ protected:
 	UPROPERTY();
 	UDataTable* BulletData;
 
-	FGameplayTag GameplayEffectTag;
+	TArray<FGameplayTag> GameplayEffectTags;
 	FGameplayTag GameplayMuzzleFlashCueTag;
 	FGameplayTag GameplayBulletHitCueTag;
 	UParticleSystem* TrailEffect;
+	float EffectDuration;
 	int32 PierceCount = 1;
 	
 	TObjectPtr<class AASeedPlayer> Owner;
@@ -57,10 +58,11 @@ public:
 			if (!Row)
 				return;
 
-			GameplayEffectTag = Row->GameplayEffectTag;
+			GameplayEffectTags = Row->GameplayEffectTags;
 			GameplayMuzzleFlashCueTag = Row->GameplayMuzzleFlashCueTag;
 			GameplayBulletHitCueTag = Row->GameplayBulletHitCueTag;
 			TrailEffect = Row->TrailEffect;
+			EffectDuration = Row->EffectDuration;
 			PierceCount = Row->PierceCount;
 
 		}

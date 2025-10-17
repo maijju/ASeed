@@ -18,12 +18,6 @@ void AASeedEnemyController::BeginPlay()
 void AASeedEnemyController::Tick(float DeltaTime)
 {
     Super::Tick(DeltaTime);
-
-    APawn* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
-    if (Player)
-    {
-        SetFocus(Player);
-    }
 }
 
 void AASeedEnemyController::OnPossess(APawn* InPawn)

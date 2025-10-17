@@ -4,32 +4,31 @@
 #include "ASeedPlayerAnimInst.h"
 #include "ASeedPlayer.h"
 
+void UASeedPlayerAnimInst::NativeInitializeAnimation()
+{
+	Owner = Cast<AASeedPlayer>(TryGetPawnOwner());
+}
+
 void UASeedPlayerAnimInst::AnimNotify_AttackL()
 {
-	AASeedPlayer* PC = Cast<AASeedPlayer>(TryGetPawnOwner());
-
-	if (IsValid(PC))
+	if (IsValid(Owner))
 	{
-		PC->Fire(TEXT("Muzzle_02"));
+		Owner->Fire(TEXT("Muzzle_02"));
 	}
 }
 
 void UASeedPlayerAnimInst::AnimNotify_AttackR()
 {
-	AASeedPlayer* PC = Cast<AASeedPlayer>(TryGetPawnOwner());
-
-	if (IsValid(PC))
+	if (IsValid(Owner))
 	{
-		PC->Fire(TEXT("Muzzle_01"));
+		Owner->Fire(TEXT("Muzzle_01"));
 	}
 }
 
 void UASeedPlayerAnimInst::AnimNotify_Reloaded()
 {
-	AASeedPlayer* PC = Cast<AASeedPlayer>(TryGetPawnOwner());
-
-	if (IsValid(PC))
+	if (IsValid(Owner))
 	{
-		PC->Reloaded();
+		Owner->Reloaded();
 	}
 }

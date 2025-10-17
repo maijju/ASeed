@@ -6,9 +6,9 @@
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 
+#include "../Ability/ASeedGA_Hit.h"
 #include "../Ability/ASeedGA_PlayerFire.h"
 #include "../Ability/ASeedGA_PlayerReload.h"
-#include "../Ability/ASeedGA_PlayerBulletHit.h"
 
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
@@ -101,9 +101,9 @@ void AASeedPlayer::BeginPlay()
 
 	ASC->InitAbilityActorInfo(this, this);
 	
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_Hit::StaticClass(), 1, INDEX_NONE, this));
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerFire::StaticClass(), 1, INDEX_NONE, this));
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerReload::StaticClass(), 1, INDEX_NONE, this));
-	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerBulletHit::StaticClass(), 1, INDEX_NONE, this));
 	//ASC->GetGameplayAttributeValueChangeDelegate(UASeedPlayerAttributeSet::GetAttackAttribute()).AddUObject(this, &UASeedPlayerAttributeSet::AttackAttributeChangeDelegate);
 
 	// 특정 태그가 발생되었을 때 호출해줄 함수를 지정할 수 있다.
@@ -192,15 +192,11 @@ void AASeedPlayer::Reload()
 void AASeedPlayer::Fire(FName SocketName)
 {
 	ProjComp->TryFireBullet(SocketName);
-	UE_LOG(LogTemp, Warning, TEXT("%f"), AttributeSet->GetAmmo());
 }
 
 void AASeedPlayer::Reloaded()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Reload Ability Activated"))
 	ASC->TryActivateAbilityByClass(UASeedGA_PlayerReload::StaticClass());
-	UE_LOG(LogTemp, Warning, TEXT("Reloaded"));
-	UE_LOG(LogTemp, Warning, TEXT("%f"), AttributeSet->GetAmmo());
 }
 
 void AASeedPlayer::Skill1()
@@ -224,5 +220,6 @@ void AASeedPlayer::OnAmmoModified()
 
 void AASeedPlayer::OnDamage()
 {
+	UE_LOG(LogTemp, Warning, TEXT("OMG! %f"), AttributeSet->GetHP());
 }
 

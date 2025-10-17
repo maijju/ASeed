@@ -14,6 +14,7 @@ enum class EEnemyAnimState : uint8
 	Run,
 	Attack,
 	Hit,
+	Stun,
 	Die
 };
 
@@ -23,11 +24,15 @@ class ASEED_API UASeedEnemyAnimInst : public UAnimInstance
 	GENERATED_BODY()
 
 protected:
+	TObjectPtr<class AASeedEnemy> Owner;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TMap<FName, TObjectPtr<UAnimSequence>> SeqMap;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	EEnemyAnimState AnimState;
+
+protected:
+	virtual void NativeInitializeAnimation() override;
 
 public:
 	void InitSeqMap(TMap<FName, TObjectPtr<UAnimSequence>> Map)

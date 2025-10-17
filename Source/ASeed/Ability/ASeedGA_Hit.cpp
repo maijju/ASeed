@@ -1,22 +1,24 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ASeedGA_PlayerBulletHit.h"
+#include "ASeedGA_Hit.h"
 #include "../AttributeSet/ASeedAttributeSet.h"
 #include "../Effect/ASeedGE_Damage.h"
+#include "../Effect/ASeedGE_Stun.h"
+#include "../Effect/ASeedGE_Burn.h"
 
-UASeedGA_PlayerBulletHit::UASeedGA_PlayerBulletHit()
+UASeedGA_Hit::UASeedGA_Hit()
 {
 	InstancingPolicy = EGameplayAbilityInstancingPolicy::NonInstanced;
 
 	FAbilityTriggerData	TriggerData;
-	TriggerData.TriggerTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Player.BulletHit"));
+	TriggerData.TriggerTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Hit"));
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
 
 	AbilityTriggers.Add(TriggerData);
 }
 
-void UASeedGA_PlayerBulletHit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
+void UASeedGA_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
 	Super::ActivateAbility(Handle, ActorInfo, ActivationInfo, TriggerEventData);
 
@@ -81,39 +83,55 @@ void UASeedGA_PlayerBulletHit::ActivateAbility(const FGameplayAbilitySpecHandle 
 		return;
 	}
 
-	float	Attack = SourceAttr->GetAttack();
-	float	Defense = TargetAttr->GetDefense();
-	float	Dmg = Attack - Defense;
-	FGameplayTag EffectTag = TriggerEventData->TargetTags.GetByIndex(0);
+	/*--------------EFFECT--------------*/
+	for (int32 i = 1; i < TriggerEventData->TargetTags.Num(); ++i)
+	{
+		FGameplayTag EffectTag = TriggerEventData->TargetTags.GetByIndex(i);
+		float EffectDuration = TriggerEventData->EventMagnitude;
 
-	Dmg = FMath::Max(1.f, Dmg);
+		// #0: Dealing
+		if (EffectTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Damage"))))
+		{
+			FGameplayEffectSpecHandle DamageSpecHandle = MakeOutgoingGameplayEffectSpec(UASeedGE_Damage::StaticClass(), 1.f);
 
-	// SetByCaller로 되어 있는 값을 지정하고 Effect를 호출하기 위해
-	// EffectContextHandle을 만들어준다.
-	FGameplayEffectContextHandle	ContextHandle =
-		MakeEffectContext(Handle, ActorInfo);
+			float Dmg = SourceAttr->GetAttack() - TargetAttr->GetDefense();
+			Dmg = FMath::Max(1.f, Dmg);
 
-	// 만약 Effect로 충돌정보를 넘겨줘야 한다면
-	ContextHandle.AddHitResult(HitData->HitResult);
+			DamageSpecHandle.Data->SetSetByCallerMagnitude(EffectTag, -Dmg);
+			SourceASC->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), TargetASC);
+		}
 
-	// Damage Effect에 대한 Handle을 만들어준다.
-	//TargetASC->MakeOutgoingSpec()
-	FGameplayEffectSpecHandle	DamageSpecHandle =
-		MakeOutgoingGameplayEffectSpec(UASeedGE_Damage::StaticClass(), 1.f);
+		// #1: Stun (Electric Bullet)
+		else if (EffectTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Stun"))))
+		{
+			FGameplayEffectSpecHandle StunSpecHandle = MakeOutgoingGameplayEffectSpec(UASeedGE_Stun::StaticClass(), 1.f);
+			StunSpecHandle.Data->SetSetByCallerMagnitude(
+				FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.StunDuration")),
+				EffectDuration);
+			StunSpecHandle.Data->DynamicGrantedTags.AddTag(FGameplayTag::RequestGameplayTag(TEXT("Custom.State.Stun")));
+			SourceASC->ApplyGameplayEffectSpecToTarget(*StunSpecHandle.Data, TargetASC);
+		}
 
-	// 위에서 생성한 핸들을 지정한다.
-	DamageSpecHandle.Data->SetContext(ContextHandle);
+		// #1: Burn (Inferno Bullet)
+		else if (EffectTag.MatchesTagExact(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Burn"))))
+		{
+			float TickDmg = (SourceAttr->GetAttack() - TargetAttr->GetDefense() ) / 10;
+			TickDmg = FMath::Max(1.f, TickDmg);
 
-	// SetByCaller에 들어갈 데미지를 지정한다.
-	// 체력을 깎아야 하기 때문에 -를 붙여준다.
-	DamageSpecHandle.Data->SetSetByCallerMagnitude(EffectTag, -Dmg);
-
-		// 위의 방법으로도 가능하고 아래의 방법으로도 가능하다.
-	SourceASC->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), TargetASC);
+			FGameplayEffectSpecHandle BurnSpecHandle = MakeOutgoingGameplayEffectSpec(UASeedGE_Burn::StaticClass(), 1.f);
+			BurnSpecHandle.Data->SetSetByCallerMagnitude(
+				FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.BurnDuration")),
+				EffectDuration);
+			BurnSpecHandle.Data->SetSetByCallerMagnitude(
+				FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Damage")),
+				-TickDmg);
+			SourceASC->ApplyGameplayEffectSpecToTarget(*BurnSpecHandle.Data, TargetASC);
+		}
+	}
 
 	/*--------------CUE--------------*/
 	FGameplayCueParameters CueParam;
-	FGameplayTag CueTag = TriggerEventData->TargetTags.GetByIndex(1);
+	FGameplayTag CueTag = TriggerEventData->TargetTags.GetByIndex(0);
 	CueParam.Instigator = GetAvatarActorFromActorInfo();
 	CueParam.EffectCauser = GetOwningActorFromActorInfo();
 	CueParam.Location = HitData->HitResult.ImpactPoint;

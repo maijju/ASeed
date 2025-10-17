@@ -4,18 +4,18 @@
 
 #include "CoreMinimal.h"
 #include "ASeedAbility.h"
-#include "ASeedGA_PlayerBulletHit.generated.h"
+#include "ASeedGA_Hit.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class ASEED_API UASeedGA_PlayerBulletHit : public UASeedAbility
+class ASEED_API UASeedGA_Hit : public UASeedAbility
 {
 	GENERATED_BODY()
 	
 public:
-	UASeedGA_PlayerBulletHit();
+	UASeedGA_Hit();
 
 protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData);

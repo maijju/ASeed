@@ -2,6 +2,7 @@
 
 #pragma once
 
+#include "AbilitySystemComponent.h"
 #include "ASeedEnemyData.generated.h"
 
 /*---------------------------------------*/
@@ -15,6 +16,15 @@ struct FEnemyData : public FTableRowBase
 public:
 	UPROPERTY(EditAnywhere)
 	TMap<FName, TObjectPtr<UAnimSequence>> SeqMap;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag AttackAbilityTag;
+
+	UPROPERTY(EditAnywhere)
+	TArray<FGameplayTag> AttackEffectTags;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag AttackCueTag;
 
 	UPROPERTY(EditAnywhere)
 	FString		Name;

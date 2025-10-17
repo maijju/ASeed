@@ -6,18 +6,24 @@
 #include "ASeedEnemy.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
+void UASeedEnemyAnimInst::NativeInitializeAnimation()
+{
+	Owner = Cast<AASeedEnemy>(TryGetPawnOwner());
+}
+
 void UASeedEnemyAnimInst::AnimNotify_AttackImpact()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Enemy Attacking"));
+	if (IsValid(Owner))
+	{
+		Owner->Attack();
+	}
 }
 
 void UASeedEnemyAnimInst::AnimNotify_AttackEnd()
 {
-	AASeedEnemy* Enemy = Cast<AASeedEnemy>(TryGetPawnOwner());
-
-	if (IsValid(Enemy))
+	if (IsValid(Owner))
 	{
-		AAIController* AIController = Enemy->GetController<AAIController>();
+		AAIController* AIController = Owner->GetController<AAIController>();
 
 		if (IsValid(AIController))
 		{

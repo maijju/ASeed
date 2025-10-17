@@ -29,19 +29,26 @@ public:
 	AASeedEnemy();
 
 protected:
+	/*--------------DATA--------------*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
 	FName Key;
 	TSoftObjectPtr<UDataTable> DataRef;
 	UPROPERTY();
 	UDataTable* Data;
 
+	/*--------------GAS--------------*/
 	TObjectPtr<UASeedEnemyAnimInst> AnimInst;
 	TObjectPtr<UAbilitySystemComponent> ASC;
 	TObjectPtr<UASeedEnemyAttributeSet> AttributeSet;
+	FGameplayTag AttackAbilityTag;
+	TArray<FGameplayTag> AttackEffectTags;
+	FGameplayTag AttackCueTag;
 
+	/*--------------MOVEMENT--------------*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	UFloatingPawnMovement* MovementComp;
 
+	/*--------------AI--------------*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="AI")
 	class UBehaviorTree* BehaviorTree;
 
@@ -63,7 +70,9 @@ public:
 			return;
 		 AnimInst->SetAnimState(State);
 	}
-
+	void Attack();
 	void OnDamage();
+	UFUNCTION()
+	void OnGameplayStun(const FGameplayTag Tag, int32 Count);
 	void Die();
 };

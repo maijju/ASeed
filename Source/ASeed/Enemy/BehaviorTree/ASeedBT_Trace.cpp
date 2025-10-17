@@ -56,8 +56,6 @@ EBTNodeResult::Type UASeedBT_Trace::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 
 	Enemy->ChangeAnimationState(EEnemyAnimState::Run);
 
-	UE_LOG(LogTemp, Warning, TEXT("Trace Execute"));
-
 	return EBTNodeResult::InProgress;
 }
 

@@ -23,11 +23,16 @@ class ASEED_API UASeedPlayerAnimInst : public UAnimInstance
 	GENERATED_BODY()
 	
 protected:
+	TObjectPtr<class AASeedPlayer> Owner;
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Montages")
 	TMap<EMontageType, TObjectPtr<UAnimMontage>> MontageMap;
 
 	UPROPERTY(BlueprintReadOnly)
 	FName RollingSectionName;
+
+protected:
+	virtual void NativeInitializeAnimation() override;
 
 public:
 	void PlayMontageByType(EMontageType Type, float PlaySpeed = 1.0f)
@@ -44,8 +49,6 @@ public:
 			{
 				Montage_JumpToSection(RollingSectionName, Montage->Get());
 			}
-
-			UE_LOG(LogTemp, Warning, TEXT("%s is playing"), *Montage->GetFName().ToString());
 		}
 	}
 

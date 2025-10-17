@@ -34,7 +34,8 @@ protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBoxComponent> Body;
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UProjectileMovementComponent> Movement;
+	TObjectPtr<UProjectileMovementComponent> MoveComp;
+	UParticleSystemComponent* ParticleComp;
 
 	/*--------PRIMARY DATA--------*/
 	UPROPERTY()
@@ -53,7 +54,7 @@ protected:
 	{
 		if (!BulletData || !BulletData->TrailEffect)
 			return;
-		UGameplayStatics::SpawnEmitterAttached(
+		ParticleComp = UGameplayStatics::SpawnEmitterAttached(
 			BulletData->TrailEffect,
 			RootComponent,
 			NAME_None,
@@ -79,6 +80,17 @@ public:
 	{
 		BulletData = Data;
 		ApplyTrailEffect();
+	}
+
+	void Deactivate()
+	{
+		if (ParticleComp)
+		{
+			ParticleComp->DeactivateSystem();
+		}
+		SetActorEnableCollision(false);
+		MoveComp->SetActive(false);
+		SetActorTickEnabled(false);
 	}
 
 public:

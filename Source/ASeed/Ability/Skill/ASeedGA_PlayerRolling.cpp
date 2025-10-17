@@ -12,11 +12,10 @@ UASeedGA_PlayerRolling::UASeedGA_PlayerRolling()
 	FAbilityTriggerData	TriggerData;
 	TriggerData.TriggerTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Player.Skill.Rolling"));
 	TriggerData.TriggerSource = EGameplayAbilityTriggerSource::GameplayEvent;
+	AbilityTriggers.Add(TriggerData);
 
 	CooldownTag = TEXT("Custom.Cooldown.Rolling");
 	ActivationBlockedTags.AddTag(FGameplayTag::RequestGameplayTag(CooldownTag));
-
-	AbilityTriggers.Add(TriggerData);
 }
 
 void UASeedGA_PlayerRolling::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)

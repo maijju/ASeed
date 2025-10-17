@@ -15,11 +15,11 @@ AASeedPlayerBullet::AASeedPlayerBullet()
 	Body->SetCollisionProfileName(TEXT("PlayerAttack"));
 
 	/*--------------MOVEMENT--------------*/
-	Movement = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));
-	Movement->SetUpdatedComponent(Body);
-	Movement->ProjectileGravityScale = 0.f;
-	Movement->InitialSpeed = 2000.f;
-	Movement->OnProjectileStop.AddDynamic(this, &AASeedPlayerBullet::ProjectileStop);
+	MoveComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));
+	MoveComp->SetUpdatedComponent(Body);
+	MoveComp->ProjectileGravityScale = 0.f;
+	MoveComp->InitialSpeed = 2000.f;
+	MoveComp->OnProjectileStop.AddDynamic(this, &AASeedPlayerBullet::ProjectileStop);
 }
 
 // Called every frame
@@ -33,6 +33,7 @@ void AASeedPlayerBullet::Tick(float DeltaTime)
 	if (LifeDuration <= 0)
 	{
 		Destroy();
+		//Deactivate();
 	}
 }
 
@@ -49,15 +50,21 @@ void AASeedPlayerBullet::ProjectileStop(const FHitResult& Hit)
 			FGameplayEventData	EventData;
 			EventData.Target = Hit.GetActor();
 			EventData.Instigator = OwnerController->GetPawn();
-			EventData.EventTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Player.BulletHit"));
+			EventData.EventTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Hit"));
 
 			/*--------------------------------------------------*/
 			/*----------------HARD CODE WARNING-----------------*/
-			/*----------INDEX 0 IS ONLY USE AS EFFECT-----------*/
-			/*----------INDEX 1 IS ONLY USE AS CUE--------------*/
+			/*----------INDEX 0 IS ONLY USE AS CUE--------------*/
+			/*----------INDEX 1 ~ IS ONLY USE AS EFFECT---------*/
 			/*--------------------------------------------------*/
-			EventData.TargetTags.AddTag(BulletData->GameplayEffectTag);
 			EventData.TargetTags.AddTag(BulletData->GameplayBulletHitCueTag);
+
+			for (const FGameplayTag Tag : BulletData->GameplayEffectTags)
+			{
+				EventData.TargetTags.AddTag(Tag);
+			}
+
+			EventData.EventMagnitude = BulletData->EffectDuration;
 
 			FGameplayAbilityTargetData_SingleTargetHit* TargetData =
 				new FGameplayAbilityTargetData_SingleTargetHit(Hit);
@@ -68,5 +75,6 @@ void AASeedPlayerBullet::ProjectileStop(const FHitResult& Hit)
 		}
 	}
 	Destroy();
+	//Deactivate();
 }
 

@@ -32,10 +32,11 @@ void UASeedPlayerProjectileComponent::TryFireBullet(FName SocketName)
 	{
 		TObjectPtr<UASeedPlayerBulletData> BulletPayload = NewObject<UASeedPlayerBulletData>();
 		BulletPayload->Location = Owner->GetMesh()->GetSocketLocation(SocketName);
-		BulletPayload->GameplayEffectTag = GameplayEffectTag;
+		BulletPayload->GameplayEffectTags = GameplayEffectTags;
 		BulletPayload->GameplayMuzzleFlashCueTag = GameplayMuzzleFlashCueTag;
 		BulletPayload->GameplayBulletHitCueTag = GameplayBulletHitCueTag;
 		BulletPayload->TrailEffect = TrailEffect;
+		BulletPayload->EffectDuration = EffectDuration;
 		BulletPayload->PierceCount = PierceCount;
 
 		FGameplayEventData EventData;

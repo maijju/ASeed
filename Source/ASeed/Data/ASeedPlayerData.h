@@ -99,7 +99,7 @@ public:
 	FVector Location;
 
 	UPROPERTY(EditAnywhere)
-	FGameplayTag GameplayEffectTag;
+	TArray<FGameplayTag> GameplayEffectTags;
 
 	UPROPERTY(EditAnywhere)
 	FGameplayTag GameplayMuzzleFlashCueTag;
@@ -109,6 +109,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* TrailEffect;
+
+	UPROPERTY(EditAnywhere)
+	float EffectDuration;
 
 	UPROPERTY(EditAnywhere)
 	int32 PierceCount;
@@ -120,7 +123,7 @@ struct ASEED_API FPlayerBulletData : public FTableRowBase
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere)
-	FGameplayTag GameplayEffectTag;
+	TArray<FGameplayTag> GameplayEffectTags;
 
 	UPROPERTY(EditAnywhere)
 	FGameplayTag GameplayMuzzleFlashCueTag;
@@ -130,6 +133,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* TrailEffect;
+
+	UPROPERTY(EditAnywhere)
+	float EffectDuration;
 
 	UPROPERTY(EditAnywhere)
 	int32 PierceCount;
