@@ -95,6 +95,7 @@ void AASeedPlayer::BeginPlay()
 	AttributeSet->SetAttackRange(PlayerData.AttackRange);
 	AttributeSet->SetAttackSpeed(PlayerData.AttackSpeed);
 	AttributeSet->SetMoveSpeed(PlayerData.MoveSpeed);
+	AttributeSet->SetCooldownReduce(PlayerData.CooldownReduce);
 	AttributeSet->SetLevel(PlayerData.Level);
 	AttributeSet->SetExp(PlayerData.Exp);
 	AttributeSet->SetGold(PlayerData.Gold);
@@ -212,10 +213,6 @@ void AASeedPlayer::Skill2()
 void AASeedPlayer::Die()
 {
 
-}
-
-void AASeedPlayer::OnAmmoModified()
-{
 }
 
 void AASeedPlayer::OnDamage()

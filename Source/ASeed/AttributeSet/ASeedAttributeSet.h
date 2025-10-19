@@ -53,6 +53,9 @@ protected:
 	FGameplayAttributeData	MoveSpeed;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute")
+	FGameplayAttributeData	CooldownReduce;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute")
 	FGameplayAttributeData	Level;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute")
@@ -71,6 +74,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, AttackRange)
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, AttackSpeed)
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, MoveSpeed)
+	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, CooldownReduce)
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, Level)
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, Exp)
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, Gold)
@@ -96,4 +100,5 @@ public:
 	virtual void CallbackMP();
 	virtual void CallbackAttack();
 	virtual void CallbackDefense();
+	virtual void CallbackMoveSpeed(float NewMoveSpeed);
 };

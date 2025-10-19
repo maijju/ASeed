@@ -10,7 +10,6 @@ void UASeedEnemyAttributeSet::CallbackHP(bool IsDead)
 
 	if (ASC)
 	{
-		// Player를 얻어온다.
 		AASeedEnemy* Enemy = Cast<AASeedEnemy>(ASC->GetAvatarActor());
 
 		if (Enemy)

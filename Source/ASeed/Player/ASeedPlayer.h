@@ -120,7 +120,6 @@ public:
 	}
 
 public:
-	void OnAmmoModified();
 	void OnDamage();
 	void OnGameplayStun()
 	{

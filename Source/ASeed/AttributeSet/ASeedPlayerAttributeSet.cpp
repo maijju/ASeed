@@ -4,23 +4,6 @@
 #include "ASeedPlayerAttributeSet.h"
 #include "../Player/ASeedPlayer.h"
 
-void UASeedPlayerAttributeSet::CallbackAmmo()
-{
-	// ASC를 얻어온다.
-	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
-
-	if (ASC)
-	{
-		// Player를 얻어온다.
-		AASeedPlayer* Player = Cast<AASeedPlayer>(ASC->GetAvatarActor());
-
-		if (Player)
-		{
-			Player->OnAmmoModified();
-		}
-	}
-}
-
 void UASeedPlayerAttributeSet::CallbackHP(bool IsDead)
 {
 	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
@@ -44,12 +27,20 @@ void UASeedPlayerAttributeSet::CallbackHP(bool IsDead)
 	}
 }
 
-void UASeedPlayerAttributeSet::CallbackAttack()
+void UASeedPlayerAttributeSet::CallbackMoveSpeed(float NewMoveSpeed)
 {
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
 
-}
+	if (ASC)
+	{
+		AASeedPlayer* Player = Cast<AASeedPlayer>(ASC->GetAvatarActor());
 
-void UASeedPlayerAttributeSet::CallbackDefense()
-{
-
+		if (Player)
+		{
+			if (UCharacterMovementComponent* MoveComp = Player->GetCharacterMovement())
+			{
+				MoveComp->MaxWalkSpeed = NewMoveSpeed;
+			}
+		}
+	}
 }

@@ -16,6 +16,7 @@ public class ASeed : ModuleRules
 			"EnhancedInput",
             "NavigationSystem",
 			"Niagara",
+			"UMG",
 			"GameplayCameras",
 			"GameplayTags",
 			"GameplayTasks",

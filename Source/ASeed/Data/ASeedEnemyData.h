@@ -3,6 +3,8 @@
 #pragma once
 
 #include "AbilitySystemComponent.h"
+#include "Engine/SkeletalMesh.h"
+#include "../Enemy/ASeedEnemyAnimInst.h"
 #include "ASeedEnemyData.generated.h"
 
 /*---------------------------------------*/
@@ -14,6 +16,12 @@ struct FEnemyData : public FTableRowBase
 	GENERATED_BODY()
 
 public:
+	UPROPERTY(EditAnywhere)
+	TObjectPtr<USkeletalMesh> Mesh;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<UASeedEnemyAnimInst> ABP;
+
 	UPROPERTY(EditAnywhere)
 	TMap<FName, TObjectPtr<UAnimSequence>> SeqMap;
 

@@ -36,8 +36,12 @@ protected:
 	UPROPERTY();
 	UDataTable* Data;
 
-	/*--------------GAS--------------*/
+	/*--------------LOCALS--------------*/
 	TObjectPtr<UASeedEnemyAnimInst> AnimInst;
+	float ExpReward;
+	float CreditReward;
+
+	/*--------------GAS--------------*/
 	TObjectPtr<UAbilitySystemComponent> ASC;
 	TObjectPtr<UASeedEnemyAttributeSet> AttributeSet;
 	FGameplayTag AttackAbilityTag;
@@ -63,6 +67,8 @@ public:
 	{
 		return ASC;
 	}
+
+	void InitializeEnemy(FName EnemyKey);
 
 	void ChangeAnimationState(EEnemyAnimState State)
 	{

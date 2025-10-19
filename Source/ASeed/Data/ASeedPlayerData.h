@@ -12,6 +12,18 @@
 /*---------------------------------------*/
 /*--------------PLAYER STAT--------------*/ 
 /*---------------------------------------*/
+UENUM()
+enum class EPlayerStats
+{
+	HPMax,
+	AmmoMax,
+	Attack,
+	AttackSpeed,
+	MoveSpeed,
+	Defense,
+	CooldownReduce
+};
+
 USTRUCT(BlueprintType)
 struct FPlayerData
 {
@@ -47,6 +59,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float		MoveSpeed = 250.f;
+
+	UPROPERTY(EditAnywhere)
+	float		CooldownReduce = 0.f;
 
 	UPROPERTY(EditAnywhere)
 	int32		Level = 1;

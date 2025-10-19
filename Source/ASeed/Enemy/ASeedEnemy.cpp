@@ -5,6 +5,7 @@
 #include "../Data/ASeedEnemyData.h"
 #include "../Ability/ASeedGA_Hit.h"
 #include "ASeedEnemyController.h"
+#include "../ASeedGameMode.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -42,16 +43,33 @@ void AASeedEnemy::BeginPlay()
 {
 	Super::BeginPlay();
 
+	/*--------------GAS--------------*/
+	ASC->InitAbilityActorInfo(this, this);
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_Hit::StaticClass(), 1, INDEX_NONE, this));
+	ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("Custom.State.Stun")),
+		EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AASeedEnemy::OnGameplayStun);
+
+}
+
+void AASeedEnemy::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+}
+
+void AASeedEnemy::InitializeEnemy(FName EnemyKey)
+{
 	/*--------------LOAD DATA--------------*/
 	Data = DataRef.LoadSynchronous();
-	FEnemyData* Row = Data->FindRow<FEnemyData>(Key, TEXT(""));
+	FEnemyData* Row = Data->FindRow<FEnemyData>(EnemyKey, TEXT(""));
 	if (!Row)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Failed to load data (%s)"), *Key.ToString());
+		UE_LOG(LogTemp, Warning, TEXT("Failed to load data (%s)"), *EnemyKey.ToString());
 		return;
 	}
 
-	/*--------------CACHE ANIMINST--------------*/
+	/*--------------APPLYING MESH & ABP--------------*/
+	MeshComp->SetSkeletalMesh(Row->Mesh);
+	MeshComp->SetAnimInstanceClass(Row->ABP);
 	AnimInst = Cast<UASeedEnemyAnimInst>(MeshComp->GetAnimInstance());
 
 	/*--------------ASSIGN PROPERTIES--------------*/
@@ -65,6 +83,8 @@ void AASeedEnemy::BeginPlay()
 	AttributeSet->SetAttackSpeed(Row->AttackSpeed);
 	AttributeSet->SetMoveSpeed(Row->MoveSpeed);
 	AnimInst->InitSeqMap(Row->SeqMap);
+	ExpReward = Row->Exp;
+	CreditReward = Row->Gold;
 
 	/*--------------RUN AI--------------*/
 	APawn* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0); // Target is always Player
@@ -77,18 +97,6 @@ void AASeedEnemy::BeginPlay()
 		AIController->GetBlackboardComponent()->SetValueAsFloat(TEXT("AttackRange"), Row->AttackRange);
 		MovementComp->MaxSpeed = Row->MoveSpeed;
 	}
-
-	/*--------------GAS--------------*/
-	ASC->InitAbilityActorInfo(this, this);
-	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_Hit::StaticClass(), 1, INDEX_NONE, this));
-	ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("Custom.State.Stun")),
-		EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AASeedEnemy::OnGameplayStun);
-
-}
-
-void AASeedEnemy::OnConstruction(const FTransform& Transform)
-{
-	Super::OnConstruction(Transform);
 }
 
 void AASeedEnemy::Attack()
@@ -109,19 +117,19 @@ void AASeedEnemy::Attack()
 		bool Collision = GetWorld()->LineTraceSingleByChannel(result, HitStart, HitEnd,
 			ECollisionChannel::ECC_Visibility, param);
 
-		if (Collision)
-		{
-			DrawDebugLine(
-				GetWorld(),
-				HitStart,
-				result.ImpactPoint,
-				FColor::Red,
-				false,
-				0.5f,  // 지속 시간
-				0,
-				2.0f   // 선 두께
-			);
-		}
+		//if (Collision)
+		//{
+		//	DrawDebugLine(
+		//		GetWorld(),
+		//		HitStart,
+		//		result.ImpactPoint,
+		//		FColor::Red,
+		//		false,
+		//		0.5f,
+		//		0,
+		//		2.0f
+		//	);
+		//}
 
 		FGameplayEventData	EventData;
 		AAIController* AIController = Cast<AAIController>(GetController());
@@ -175,5 +183,7 @@ void AASeedEnemy::OnGameplayStun(const FGameplayTag Tag, int32 Count)
 void AASeedEnemy::Die()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Dead"));
+	AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
+	GM->EarnEliminationRewards(FRewards(ExpReward, CreditReward));
 	Destroy();
 }

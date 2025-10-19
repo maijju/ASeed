@@ -15,9 +15,7 @@ class ASEED_API UASeedPlayerAttributeSet : public UASeedAttributeSet
 	GENERATED_BODY()
 
 public:
-	virtual void CallbackAmmo();
 	virtual void CallbackHP(bool IsDead);
-	virtual void CallbackAttack();
-	virtual void CallbackDefense();
+	virtual void CallbackMoveSpeed(float NewMoveSpeed);
 	
 };

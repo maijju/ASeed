@@ -90,7 +90,7 @@ void UASeedAbility::ActivateAbility(const FGameplayAbilitySpecHandle Handle, con
 		float CooldownAmount = Cooldown;
 
 		// .스킬 쿨감 20% 감소일 경우
-		//CooldownAmount *= (1.f - 0.2f);
+		CooldownAmount *= (1.f - SourceAttr->GetCooldownReduce());
 
 		FGameplayEffectSpecHandle	CooldownSpec = MakeOutgoingGameplayEffectSpec(UASeedGE_Cooldown::StaticClass(), 1.f);
 		CooldownSpec.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Cooldown")), CooldownAmount);
