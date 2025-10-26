@@ -20,6 +20,11 @@ void UASeedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectM
 	{
 		CallbackMoveSpeed(GetMoveSpeed());
 	}
+
+	if (Data.EvaluatedData.Attribute == GetHPMaxAttribute())
+	{
+		CallbackHPMax();
+	}
 }
 
 void UASeedAttributeSet::CallbackAmmo()
@@ -29,6 +34,10 @@ void UASeedAttributeSet::CallbackAmmo()
 void UASeedAttributeSet::CallbackHP(bool IsDead)
 {
 
+}
+
+void UASeedAttributeSet::CallbackHPMax()
+{
 }
 
 void UASeedAttributeSet::CallbackMP()

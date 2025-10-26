@@ -30,6 +30,8 @@ protected:
 	UPROPERTY();
 	UDataTable* BulletData;
 
+	FPlayerBulletData* CurrentBulletData;
+
 	TArray<FGameplayTag> GameplayEffectTags;
 	FGameplayTag GameplayMuzzleFlashCueTag;
 	FGameplayTag GameplayBulletHitCueTag;
@@ -53,18 +55,27 @@ public:
 		}
 		else
 		{
-			FPlayerBulletData* Row = BulletData->FindRow<FPlayerBulletData>(BulletKey, TEXT(""));
+			CurrentBulletData = BulletData->FindRow<FPlayerBulletData>(BulletKey, TEXT(""));
 
-			if (!Row)
+			if (!CurrentBulletData)
 				return;
 
-			GameplayEffectTags = Row->GameplayEffectTags;
-			GameplayMuzzleFlashCueTag = Row->GameplayMuzzleFlashCueTag;
-			GameplayBulletHitCueTag = Row->GameplayBulletHitCueTag;
-			TrailEffect = Row->TrailEffect;
-			EffectDuration = Row->EffectDuration;
-			PierceCount = Row->PierceCount;
+			GameplayEffectTags = CurrentBulletData->GameplayEffectTags;
+			GameplayMuzzleFlashCueTag = CurrentBulletData->GameplayMuzzleFlashCueTag;
+			GameplayBulletHitCueTag = CurrentBulletData->GameplayBulletHitCueTag;
+			TrailEffect = CurrentBulletData->TrailEffect;
+			EffectDuration = CurrentBulletData->EffectDuration;
+			PierceCount = CurrentBulletData->PierceCount;
 
 		}
+	}
+	UDataTable* GetWholeBulletData()
+	{
+		return BulletData;
+	}
+
+	FPlayerBulletData* GetBulletData()
+	{
+		return CurrentBulletData;
 	}
 };

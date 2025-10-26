@@ -83,6 +83,12 @@ void UASeedGA_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		return;
 	}
 
+	if (TargetAttr->GetHP() <= 0)
+	{
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+
 	/*--------------EFFECT--------------*/
 	for (int32 i = 1; i < TriggerEventData->TargetTags.Num(); ++i)
 	{

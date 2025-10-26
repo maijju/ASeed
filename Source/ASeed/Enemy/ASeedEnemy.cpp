@@ -6,6 +6,7 @@
 #include "../Ability/ASeedGA_Hit.h"
 #include "ASeedEnemyController.h"
 #include "../ASeedGameMode.h"
+#include "../UI/ASeedUI_HPBar.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
 
@@ -33,6 +34,31 @@ AASeedEnemy::AASeedEnemy()
 	if (BTAsset.Succeeded())
 		BehaviorTree = BTAsset.Object;
 
+	/*--------------UI--------------*/
+	WidgetComp = CreateDefaultSubobject<UWidgetComponent>(TEXT("WidgetComp"));
+	WidgetComp->SetupAttachment(MeshComp);
+
+	static ConstructorHelpers::FClassFinder<UUserWidget> HPBar(TEXT("/Script/UMGEditor.WidgetBlueprint'/Game/UI/UI_HPBar.UI_HPBar_C'"));
+
+	if (HPBar.Succeeded())
+	{
+		WidgetComp->SetWidgetClass(HPBar.Class);
+	}
+
+	WidgetComp->SetWidgetSpace(EWidgetSpace::World);
+	WidgetComp->SetDrawSize(FVector2D(100, 10));
+	WidgetComp->SetRelativeRotation(FRotator(0.0, 90.0, 0.0));
+	WidgetComp->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> WidgetMtrl(TEXT("/Script/Engine.Material'/Game/UI/Material/MT_WidgetComponent_World.MT_WidgetComponent_World'"));
+
+	if (WidgetMtrl.Succeeded())
+	{
+		WidgetComp->SetMaterial(0, WidgetMtrl.Object);
+	}
+
+	WidgetComp->SetAbsolute(false, true, false);
+
 	/*--------------GAS--------------*/
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	AttributeSet = CreateDefaultSubobject<UASeedEnemyAttributeSet>(TEXT("AttributeSet"));
@@ -42,6 +68,9 @@ AASeedEnemy::AASeedEnemy()
 void AASeedEnemy::BeginPlay()
 {
 	Super::BeginPlay();
+
+	/*--------------UI--------------*/
+	HPBarWidget = Cast<UASeedUI_HPBar>(WidgetComp->GetWidget());
 
 	/*--------------GAS--------------*/
 	ASC->InitAbilityActorInfo(this, this);
@@ -72,6 +101,16 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 	MeshComp->SetAnimInstanceClass(Row->ABP);
 	AnimInst = Cast<UASeedEnemyAnimInst>(MeshComp->GetAnimInstance());
 
+	FBoxSphereBounds Bounds = MeshComp->Bounds;
+	float Height = Bounds.BoxExtent.Z * 2.0f;
+	float Radius = FMath::Max(Bounds.BoxExtent.X, Bounds.BoxExtent.Y);
+
+	Body->SetCapsuleHalfHeight(Height / 2);
+	Body->SetCapsuleRadius(Radius);
+	Body->SetRelativeRotation(FRotator(0.0, 90.0, 0.0));
+	MeshComp->SetRelativeLocation(FVector(0.0, 0.0, -Height/2));
+	WidgetComp->SetRelativeLocation(FVector(0, 0, Height + 30));
+
 	/*--------------ASSIGN PROPERTIES--------------*/
 	AttackAbilityTag = Row->AttackAbilityTag;
 	AttackEffectTags = Row->AttackEffectTags;
@@ -85,6 +124,9 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 	AnimInst->InitSeqMap(Row->SeqMap);
 	ExpReward = Row->Exp;
 	CreditReward = Row->Gold;
+
+	/*--------------UI--------------*/
+	HPBarWidget->SetHPPercent(AttributeSet->GetHP(), AttributeSet->GetHPMax());
 
 	/*--------------RUN AI--------------*/
 	APawn* Player = UGameplayStatics::GetPlayerPawn(GetWorld(), 0); // Target is always Player
@@ -161,6 +203,8 @@ void AASeedEnemy::Attack()
 void AASeedEnemy::OnDamage()
 {
 	UE_LOG(LogTemp, Warning, TEXT("OUCH! %f"), AttributeSet->GetHP());
+	HPBarWidget->SetHPPercent(AttributeSet->GetHP(), AttributeSet->GetHPMax());
+
 }
 
 void AASeedEnemy::OnGameplayStun(const FGameplayTag Tag, int32 Count)

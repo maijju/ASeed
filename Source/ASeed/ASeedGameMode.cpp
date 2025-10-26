@@ -7,6 +7,11 @@
 
 #include "UI/HUD/ASeedUI_LevelProgress.h"
 #include "UI/ASeedUI_LevelUp.h"
+#include "UI/HUD/ASeedUI_PlayerHUD.h"
+#include "UI/ASeedUI_ModuleDetected.h"
+#include "UI/ASeedUI_ApplyBullet.h"
+#include "UI/ASeedUI_ApplySkill.h"
+#include "UI/ASeedUI_GameOver.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "GameplayEffect.h"
@@ -20,7 +25,10 @@
 #include "Effect/StatUp/ASeedGE_StatUpDefense.h"
 #include "Effect/StatUp/ASeedGE_StatUpHPMax.h"
 #include "Effect/StatUp/ASeedGE_StatUpMoveSpeed.h"
+#include "Effect/StatUp/ASeedGE_StatUpExpBonus.h"
+#include "Effect/StatUp/ASeedGE_StatUpCoreBonus.h"
 
+#include "Data/ASeedPlayerData.h"
 #include "Data/ASeedGameData.h"
 
 AASeedGameMode::AASeedGameMode()
@@ -56,6 +64,7 @@ void AASeedGameMode::BeginPlay()
         return;
     }
     Levels = LevelRow->Levels;
+    Modules = LevelRow->Modules;
 
     LevelUpRewardData = LevelUpRewardDataRef.LoadSynchronous();
     FLevelUpRewardData* LevelUpRewardRow = LevelUpRewardData->FindRow<FLevelUpRewardData>(LevelUpRewardKey, TEXT(""));
@@ -89,7 +98,12 @@ void AASeedGameMode::BeginPlay()
 void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
 {
     LevelHUD = Cast<UASeedUI_LevelProgress>(MainWidget->GetWidgetFromName(TEXT("LevelHUD")));
-    LevelUpUI = Cast<UASeedUI_LevelUp>(MainWidget->GetWidgetFromName(TEXT("LevelUpUI")));
+    LevelUpUI = Cast<UASeedUI_LevelUp>(MainWidget->GetWidgetFromName(TEXT("LevelUp")));
+    PlayerHUD = Cast<UASeedUI_PlayerHUD>(MainWidget->GetWidgetFromName(TEXT("PlayerHUD")));
+    ModuleDetectedUI = Cast<UASeedUI_ModuleDetected>(MainWidget->GetWidgetFromName(TEXT("ModuleDetected")));
+    ApplyBulletUI = Cast<UASeedUI_ApplyBullet>(MainWidget->GetWidgetFromName(TEXT("ApplyBullet")));
+    ApplySkillUI = Cast<UASeedUI_ApplySkill>(MainWidget->GetWidgetFromName(TEXT("ApplySkill")));
+    GameOverUI = Cast<UASeedUI_GameOver>(MainWidget->GetWidgetFromName(TEXT("GameOver")));
 
     if (LevelHUD)
     {
@@ -100,6 +114,31 @@ void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
     {
         LevelUpUI->SetVisibility(ESlateVisibility::Collapsed);
         LevelUpUI->OnCardSelected.AddDynamic(this, &AASeedGameMode::OnCardSelected);
+    }
+
+    if (PlayerHUD)
+    {
+        PlayerHUD->SetCorePercent(0, Modules[NumOfBuyModules].MaxCore);
+    }
+
+    if (ModuleDetectedUI)
+    {
+        ModuleDetectedUI->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    if (ApplyBulletUI)
+    {
+        ApplyBulletUI->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    if (ApplySkillUI)
+    {
+        ApplySkillUI->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    if (GameOverUI)
+    {
+        GameOverUI->SetVisibility(ESlateVisibility::Collapsed);
     }
 }
 
@@ -159,8 +198,10 @@ void AASeedGameMode::ExecuteWave()
 
 void AASeedGameMode::EarnEliminationRewards(const FRewards& Rewards)
 {
-    /*---------EARN CREDIT---------*/
-    CurrentCredit += Rewards.CreditReward;
+    const UASeedAttributeSet* PlayerAttr = Player->GetAbilitySystemComponent()->GetSet<UASeedAttributeSet>();
+
+    /*---------EARN CORE---------*/
+    CurrentCore += Rewards.CoreReward + Rewards.CoreReward * PlayerAttr->GetCoreBonus();
 
     /*---------CHECK EXP CONDITION---------*/
     if (CurrentLevel >= Levels.Num())
@@ -170,7 +211,7 @@ void AASeedGameMode::EarnEliminationRewards(const FRewards& Rewards)
     }
 
     /*---------EARN EXP---------*/
-    CurrentExp += Rewards.ExpReward;
+    CurrentExp += Rewards.ExpReward + Rewards.ExpReward * PlayerAttr->GetExpBonus();
 
     /*---------LEVELUP---------*/
     while (CurrentLevel < Levels.Num() - 1 && CurrentExp >= Levels[CurrentLevel].MaxExp)
@@ -190,14 +231,171 @@ void AASeedGameMode::EarnEliminationRewards(const FRewards& Rewards)
     /*---------UPDATE UI---------*/
     if (LevelHUD)
     {
-        LevelHUD->UpdateExpPercent(CurrentExp, Levels[CurrentLevel].MaxExp);
+        LevelHUD->SetExpPercent(CurrentExp, Levels[CurrentLevel].MaxExp);
+    }
+
+    if (PlayerHUD)
+    {
+        PlayerHUD->SetCorePercent(CurrentCore, Modules[NumOfBuyModules].MaxCore);
     }
 
     UE_LOG(LogTemp, Warning, TEXT("Current Level: %d, Exp: %.1f / %.1f, Credit: %.1f"),
         CurrentLevel,
         CurrentExp,
         Levels[CurrentLevel].MaxExp,
-        CurrentCredit);
+        CurrentCore);
+}
+
+void AASeedGameMode::TryInstallModule()
+{
+    /*---------PROCESSING PAYMENT---------*/
+    if (CurrentCore < Modules[NumOfBuyModules].MaxCore)
+        return;
+
+    APlayerController* PC = Cast<APlayerController>(Player->GetController());
+    PC->SetPause(true);
+
+    CurrentCore -= Modules[NumOfBuyModules].MaxCore;
+    // if NumOfBuyModules reaches last index of Modules, it keeps last value
+    if (Modules.Num() > NumOfBuyModules + 1)
+    {
+        NumOfBuyModules++;
+    }
+
+    /*---------LOAD WHOLE MODULE DATA---------*/
+    UDataTable* WholeBulletData = Player->GetProjectileComponent()->GetWholeBulletData();
+    UDataTable* WholeSkillData = Player->GetSkillComponent()->GetWholeSkillData();
+    FPlayerBulletData* BulletData = Player->GetProjectileComponent()->GetBulletData();
+    FPlayerSkillData* SkillAData = Player->GetSkillComponent()->GetSkillAData();
+    FPlayerSkillData* SkillBData = Player->GetSkillComponent()->GetSkillBData();
+
+    FModuleSummary Summary;
+    Summary.ModuleName = BulletData->BulletName;
+    Summary.ModuleType = FName("Bullet");
+    Summary.ModuleDesc = BulletData->Description;
+    CurrentBulletModule = Summary;
+
+    Summary.ModuleName = SkillAData->SkillName;
+    Summary.ModuleType = FName("SkillA");
+    Summary.ModuleDesc = SkillAData->Description;
+    CurrentSkillAModule = Summary;
+
+    Summary.ModuleName = SkillBData->SkillName;
+    Summary.ModuleType = FName("SkillB");
+    Summary.ModuleDesc = SkillBData->Description;
+    CurrentSkillBModule = Summary;
+
+    /*---------PICK SINGLE MODULE---------*/
+    TArray<FModuleSummary> AllModules;
+    
+    if (WholeBulletData)
+    {
+        TArray<FName> RowNames = WholeBulletData->GetRowNames();
+
+        for (auto RowName : RowNames)
+        {
+            if (RowName == FName("Default"))
+                continue;
+
+            FPlayerBulletData* Row = WholeBulletData->FindRow<FPlayerBulletData>(RowName, TEXT(""));
+            FModuleSummary ModuleSummary;
+            ModuleSummary.ModuleKey = RowName;
+            ModuleSummary.ModuleName = Row->BulletName;
+            ModuleSummary.ModuleType = FName("Bullet");
+            ModuleSummary.ModuleDesc = Row->Description;
+            AllModules.Add(ModuleSummary);
+        }
+    }
+    if (WholeSkillData)
+    {
+        TArray<FName> RowNames = WholeSkillData->GetRowNames();
+
+        for (auto RowName : RowNames)
+        {
+            if (RowName == FName("Empty"))
+                continue;
+
+            FPlayerSkillData* Row = WholeSkillData->FindRow<FPlayerSkillData>(RowName, TEXT(""));
+            FModuleSummary ModuleSummary;
+            ModuleSummary.ModuleKey = RowName;
+            ModuleSummary.ModuleName = Row->SkillName;
+            ModuleSummary.ModuleType = FName("Skill");
+            ModuleSummary.ModuleDesc = Row->Description;
+            AllModules.Add(ModuleSummary);
+        }
+    }
+
+    if (AllModules.Num() > 0)
+    {
+        int32 RandomIndex = FMath::RandRange(0, AllModules.Num() - 1);
+        SelectedModule = AllModules[RandomIndex];
+    }
+
+    /*---------UPDATE UI---------*/
+    PlayerHUD->SetCorePercent(CurrentCore, Modules[NumOfBuyModules].MaxCore);
+    ModuleDetectedUI->InitializeModule(SelectedModule);
+    ModuleDetectedUI->SetVisibility(ESlateVisibility::Visible);
+}
+
+void AASeedGameMode::OnConfirmModule()
+{
+    ModuleDetectedUI->SetVisibility(ESlateVisibility::Collapsed);
+
+    if (SelectedModule.ModuleType == FName("Bullet"))
+    {
+        ApplyBulletUI->InitializedModules(CurrentBulletModule, SelectedModule);
+        ApplyBulletUI->SetVisibility(ESlateVisibility::Visible);
+    }
+    else
+    {
+        ApplySkillUI->InitializedModules(CurrentSkillAModule, CurrentSkillBModule, SelectedModule);
+        ApplySkillUI->SetVisibility(ESlateVisibility::Visible);
+    }
+}
+
+void AASeedGameMode::OnApplyBullet()
+{
+    ApplyBulletUI->SetVisibility(ESlateVisibility::Collapsed);
+
+    Player->UpdateBulletKey(SelectedModule.ModuleKey);
+
+    APlayerController* PC = Cast<APlayerController>(Player->GetController());
+    PC->SetPause(false);
+}
+
+void AASeedGameMode::OnApplySkillA()
+{
+    ApplySkillUI->SetVisibility(ESlateVisibility::Collapsed);
+
+    Player->UpdateSkillAKey(SelectedModule.ModuleKey);
+
+    APlayerController* PC = Cast<APlayerController>(Player->GetController());
+    PC->SetPause(false);
+}
+
+void AASeedGameMode::OnApplySkillB()
+{
+    ApplySkillUI->SetVisibility(ESlateVisibility::Collapsed);
+
+    Player->UpdateSkillBKey(SelectedModule.ModuleKey);
+
+    APlayerController* PC = Cast<APlayerController>(Player->GetController());
+    PC->SetPause(false);
+}
+
+void AASeedGameMode::OnDiscardChange()
+{
+    ApplySkillUI->SetVisibility(ESlateVisibility::Collapsed);
+    ApplyBulletUI->SetVisibility(ESlateVisibility::Collapsed);
+    APlayerController* PC = Cast<APlayerController>(Player->GetController());
+    PC->SetPause(false);
+}
+
+void AASeedGameMode::GameOver()
+{
+    GameOverUI->SetVisibility(ESlateVisibility::Visible);
+    APlayerController* PC = Cast<APlayerController>(Player->GetController());
+    PC->SetPause(true);
 }
 
 void AASeedGameMode::LevelUp()
@@ -234,7 +432,7 @@ void AASeedGameMode::OnCardSelected(FCard Card)
     /*---------COLLAPSE LEVELUP UI---------*/
     LevelUpUI->SetVisibility(ESlateVisibility::Collapsed);
     
-    /*---------RESTART GAME---------*/
+    /*---------RESUME GAME---------*/
     APlayerController* PC = Cast<APlayerController>(Player->GetController());
     PC->SetPause(false);
 
@@ -276,6 +474,16 @@ void AASeedGameMode::OnCardSelected(FCard Card)
     case EPlayerStats::CooldownReduce:
         EffectClass = UASeedGE_StatUpCooldownReduce::StaticClass();
         EffectTagName = FName("Custom.Effect.StatUp.CooldownReduce");
+        Value /= 100;
+        break;
+    case EPlayerStats::ExpBonus:
+        EffectClass = UASeedGE_StatUpExpBonus::StaticClass();
+        EffectTagName = FName("Custom.Effect.StatUp.ExpBonus");
+        Value /= 100;
+        break;
+    case EPlayerStats::CoreBonus:
+        EffectClass = UASeedGE_StatUpCoreBonus::StaticClass();
+        EffectTagName = FName("Custom.Effect.StatUp.CoreBonus");
         Value /= 100;
         break;
     default:

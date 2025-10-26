@@ -24,7 +24,7 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 public:
-	void UpdateExpPercent(float CurrentExp, float MaxExp)
+	void SetExpPercent(float CurrentExp, float MaxExp)
 	{
 		ExpBar->SetPercent(CurrentExp / MaxExp);
 	}

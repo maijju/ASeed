@@ -28,6 +28,9 @@ protected:
 	UPROPERTY();
 	UDataTable* SkillData;
 
+	FPlayerSkillData* SkillAData;
+	FPlayerSkillData* SkillBData;
+
 	TObjectPtr<class AASeedPlayer> Owner;
 	TMap<FName, FPlayerSkillData> SkillMap;
 
@@ -35,5 +38,26 @@ private:
 	virtual void BeginPlay() override;
 
 public:
-	void TryActivateSkill(FName SkillKey);
+	void UpdateSkillADataByKey(FName SkillKey)
+	{
+		SkillAData = SkillData->FindRow<FPlayerSkillData>(SkillKey, TEXT(""));
+	}
+	void UpdateSkillBDataByKey(FName SkillKey)
+	{
+		SkillBData = SkillData->FindRow<FPlayerSkillData>(SkillKey, TEXT(""));
+	}
+	UDataTable* GetWholeSkillData()
+	{
+		return SkillData;
+	}
+	FPlayerSkillData* GetSkillAData()
+	{
+		return SkillAData;
+	}
+	FPlayerSkillData* GetSkillBData()
+	{
+		return SkillBData;
+	}
+
+	void TryActivateSkill(bool IsSkillA);
 };

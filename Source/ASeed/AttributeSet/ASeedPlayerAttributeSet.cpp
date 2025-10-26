@@ -11,18 +11,23 @@ void UASeedPlayerAttributeSet::CallbackHP(bool IsDead)
 	if (ASC)
 	{
 		AASeedPlayer* Player = Cast<AASeedPlayer>(ASC->GetAvatarActor());
-
 		if (Player)
 		{
-			if (!IsDead)
-			{
-				Player->OnDamage();
-			}
-			else
-			{
-				Player->Die();
-			}
-			
+			Player->OnDamage(IsDead);
+		}
+	}
+}
+
+void UASeedPlayerAttributeSet::CallbackHPMax()
+{
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+
+	if (ASC)
+	{
+		AASeedPlayer* Player = Cast<AASeedPlayer>(ASC->GetAvatarActor());
+		if (Player)
+		{
+			Player->OnHPMaxChanged();
 		}
 	}
 }

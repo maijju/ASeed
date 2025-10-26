@@ -59,10 +59,10 @@ protected:
 	FGameplayAttributeData	Level;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute")
-	FGameplayAttributeData	Exp;
+	FGameplayAttributeData	ExpBonus;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attribute")
-	FGameplayAttributeData	Gold;
+	FGameplayAttributeData	CoreBonus;
 
 public:
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, Attack)
@@ -75,9 +75,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, AttackSpeed)
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, MoveSpeed)
 	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, CooldownReduce)
-	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, Level)
-	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, Exp)
-	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, Gold)
+	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, ExpBonus)
+	ATTRIBUTE_ACCESSORS(UASeedAttributeSet, CoreBonus)
 
 public:
 	void SetName(const FString& Name)
@@ -97,6 +96,7 @@ public:
 
 	virtual void CallbackAmmo();
 	virtual void CallbackHP(bool IsDead);
+	virtual void CallbackHPMax();
 	virtual void CallbackMP();
 	virtual void CallbackAttack();
 	virtual void CallbackDefense();

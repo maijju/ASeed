@@ -30,7 +30,7 @@ public:
 	int32 Value;
 };
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardSelectedDelegate, FCard, CardIndex);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCardSelectedDelegate, FCard, SelectedCard);
 
 UCLASS()
 class ASEED_API UASeedUI_LevelUp : public UUserWidget

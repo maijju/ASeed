@@ -30,10 +30,17 @@
 #include "GameFramework/Character.h"
 #include "ASeedPlayer.generated.h"
 
+
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerHit, float, CurrentHp, float, MaxHp);
+
 UCLASS()
 class ASEED_API AASeedPlayer : public ACharacter, public IAbilitySystemInterface
 {
 	GENERATED_BODY()
+
+public:
+	UPROPERTY(BlueprintAssignable)
+	FOnPlayerHit OnPlayerHit;
 
 protected:
 	/*--------------CAMERA--------------*/
@@ -52,9 +59,13 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ReloadAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* Skill1Action;
+	UInputAction* SkillAAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* Skill2Action;
+	UInputAction* SkillBAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InstallModuleAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ShowStatusAction;
 
 	/*--------------STAT--------------*/
 	UPROPERTY(EditAnywhere, Category = "Stat")
@@ -62,17 +73,17 @@ protected:
 
 	/*--------------BULLET--------------*/
 	UPROPERTY(VisibleAnywhere, Category = "Bullet")
-	TObjectPtr<UASeedPlayerProjectileComponent> ProjComp;
+	UASeedPlayerProjectileComponent* ProjComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName BulletKey = FName("Default");
 
 	/*--------------SKILL--------------*/
 	UPROPERTY(VisibleAnywhere, Category = "Skill")
-	TObjectPtr<UASeedPlayerSkillComponent> SkillComp;
+	UASeedPlayerSkillComponent* SkillComp;
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName Skill1Key = FName("Rolling");
+	FName SkillAKey = FName("Empty");
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	FName Skill2Key;
+	FName SkillBKey = FName("Empty");
 
 	/*--------------LOCAL VARIABLES--------------*/
 	TObjectPtr<UASeedPlayerAnimInst> AnimInst;
@@ -93,15 +104,14 @@ protected:
 	void Move(const FInputActionValue& Value);
 	void Attack(); // pair with Fire
 	void Reload(); // pair with Reloaded
+	void InstallModule();
 
 public:
 	void Fire(FName SocketName);
 	void Reloaded();
 
-	void Skill1();
-	void Skill2();
-
-	void Die();
+	void SkillA();
+	void SkillB();
 
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const
@@ -120,10 +130,34 @@ public:
 	}
 
 public:
-	void OnDamage();
+	void OnDamage(bool IsDead);
+	void OnHPMaxChanged();
 	void OnGameplayStun()
 	{
 
+	}
+	UASeedPlayerProjectileComponent* GetProjectileComponent()
+	{
+		return ProjComp;
+	}
+	UASeedPlayerSkillComponent* GetSkillComponent()
+	{
+		return SkillComp;
+	}
+	void UpdateBulletKey(FName Key)
+	{
+		BulletKey = Key;
+		ProjComp->UpdateBulletDataByKey(Key);
+	}
+	void UpdateSkillAKey(FName Key)
+	{
+		SkillAKey = Key;
+		SkillComp->UpdateSkillADataByKey(Key);
+	}
+	void UpdateSkillBKey(FName Key)
+	{
+		SkillBKey = Key;
+		SkillComp->UpdateSkillBDataByKey(Key);
 	}
 
 protected:

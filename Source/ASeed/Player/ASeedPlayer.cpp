@@ -10,6 +10,10 @@
 #include "../Ability/ASeedGA_PlayerFire.h"
 #include "../Ability/ASeedGA_PlayerReload.h"
 
+#include "../UI/HUD/ASeedUI_PlayerHUD.h"
+
+#include "../ASeedGameMode.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
@@ -72,8 +76,9 @@ void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AASeedPlayer::Move);
 		EnhancedInputComponent->BindAction(AttackAction, ETriggerEvent::Started, this, &AASeedPlayer::Attack);
 		EnhancedInputComponent->BindAction(ReloadAction, ETriggerEvent::Started, this, &AASeedPlayer::Reload);
-		EnhancedInputComponent->BindAction(Skill1Action, ETriggerEvent::Started, this, &AASeedPlayer::Skill1);
-		EnhancedInputComponent->BindAction(Skill2Action, ETriggerEvent::Started, this, &AASeedPlayer::Skill2);
+		EnhancedInputComponent->BindAction(SkillAAction, ETriggerEvent::Started, this, &AASeedPlayer::SkillA);
+		EnhancedInputComponent->BindAction(SkillBAction, ETriggerEvent::Started, this, &AASeedPlayer::SkillB);
+		EnhancedInputComponent->BindAction(InstallModuleAction, ETriggerEvent::Started, this, &AASeedPlayer::InstallModule);
 	}
 }
 
@@ -84,6 +89,13 @@ void AASeedPlayer::BeginPlay()
 
 	/*--------------ANIMINST--------------*/
 	AnimInst = Cast<UASeedPlayerAnimInst>(GetMesh()->GetAnimInstance());
+
+	/*--------------PROJECTILE COMPONENT--------------*/
+	ProjComp->UpdateBulletDataByKey(BulletKey);
+
+	/*--------------SKILL COMPONENT--------------*/
+	SkillComp->UpdateSkillADataByKey(SkillAKey);
+	SkillComp->UpdateSkillBDataByKey(SkillBKey);
 
 	/*--------------GAS--------------*/
 	AttributeSet->SetAttack(PlayerData.Attack);
@@ -96,11 +108,12 @@ void AASeedPlayer::BeginPlay()
 	AttributeSet->SetAttackSpeed(PlayerData.AttackSpeed);
 	AttributeSet->SetMoveSpeed(PlayerData.MoveSpeed);
 	AttributeSet->SetCooldownReduce(PlayerData.CooldownReduce);
-	AttributeSet->SetLevel(PlayerData.Level);
-	AttributeSet->SetExp(PlayerData.Exp);
-	AttributeSet->SetGold(PlayerData.Gold);
+	AttributeSet->SetExpBonus(PlayerData.ExpBonus);
+	AttributeSet->SetExpBonus(PlayerData.CoreBonus);
 
 	ASC->InitAbilityActorInfo(this, this);
+
+	OnPlayerHit.Broadcast(AttributeSet->GetHP(), AttributeSet->GetHPMax());
 	
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_Hit::StaticClass(), 1, INDEX_NONE, this));
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerFire::StaticClass(), 1, INDEX_NONE, this));
@@ -110,9 +123,6 @@ void AASeedPlayer::BeginPlay()
 	// 특정 태그가 발생되었을 때 호출해줄 함수를 지정할 수 있다.
 	// 태그가 제거될 때도 들어온다.
 	//ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(TEXT("Custom.State.Stun")), EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AASeedPlayer::OnGameplayStun);
-
-	/*--------------PROJECTILE COMPONENT--------------*/
-	ProjComp->UpdateBulletDataByKey(BulletKey);
 
 }
 
@@ -190,6 +200,14 @@ void AASeedPlayer::Reload()
 	AnimInst->PlayMontageByType(EMontageType::Reload, AttributeSet->GetAttackSpeed());
 }
 
+void AASeedPlayer::InstallModule()
+{
+	if (AnimInst->IsAnyMontagePlaying())
+		return;
+	AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
+	GM->TryInstallModule();
+}
+
 void AASeedPlayer::Fire(FName SocketName)
 {
 	ProjComp->TryFireBullet(SocketName);
@@ -200,23 +218,28 @@ void AASeedPlayer::Reloaded()
 	ASC->TryActivateAbilityByClass(UASeedGA_PlayerReload::StaticClass());
 }
 
-void AASeedPlayer::Skill1()
+void AASeedPlayer::SkillA()
 {
-	SkillComp->TryActivateSkill(Skill1Key);
+	SkillComp->TryActivateSkill(true);
 }
 
-void AASeedPlayer::Skill2()
+void AASeedPlayer::SkillB()
 {
-	SkillComp->TryActivateSkill(Skill2Key);
+	SkillComp->TryActivateSkill(false);
 }
 
-void AASeedPlayer::Die()
+void AASeedPlayer::OnDamage(bool IsDead)
 {
+	OnPlayerHit.Broadcast(AttributeSet->GetHP(), AttributeSet->GetHPMax());
 
+	if (IsDead)
+	{
+		AnimInst->PlayMontageByType(EMontageType::Die);
+	}
 }
 
-void AASeedPlayer::OnDamage()
+void AASeedPlayer::OnHPMaxChanged()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OMG! %f"), AttributeSet->GetHP());
+	OnPlayerHit.Broadcast(AttributeSet->GetHP(), AttributeSet->GetHPMax());
 }
 

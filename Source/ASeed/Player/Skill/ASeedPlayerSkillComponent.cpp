@@ -24,17 +24,26 @@ void UASeedPlayerSkillComponent::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillData"));
 }
 
-void UASeedPlayerSkillComponent::TryActivateSkill(FName SkillKey)
+void UASeedPlayerSkillComponent::TryActivateSkill(bool IsSkillA)
 {
 	if (!Owner)
 		return;
+
+	FPlayerSkillData* Row;
+
+	if (IsSkillA)
+	{
+		Row = SkillAData;
+	}
+	else
+	{
+		Row = SkillBData;
+	}
 
 	UAbilitySystemComponent* ASC = Owner->GetAbilitySystemComponent();
 
 	if (ASC)
 	{
-		FPlayerSkillData* Row = SkillData->FindRow<FPlayerSkillData>(SkillKey, TEXT(""));
-
 		if (!Row)
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillData"));

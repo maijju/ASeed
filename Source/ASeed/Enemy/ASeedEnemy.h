@@ -7,6 +7,7 @@
 
 #include "GameFramework/FloatingPawnMovement.h"
 #include "ASeedEnemyAnimInst.h"
+#include "Components/WidgetComponent.h"
 
 #include "AbilitySystemComponent.h"
 #include "AbilitySystemInterface.h"
@@ -40,6 +41,10 @@ protected:
 	TObjectPtr<UASeedEnemyAnimInst> AnimInst;
 	float ExpReward;
 	float CreditReward;
+
+	/*--------------UI--------------*/
+	TObjectPtr<UWidgetComponent> WidgetComp;
+	TObjectPtr<class UASeedUI_HPBar> HPBarWidget;
 
 	/*--------------GAS--------------*/
 	TObjectPtr<UAbilitySystemComponent> ASC;

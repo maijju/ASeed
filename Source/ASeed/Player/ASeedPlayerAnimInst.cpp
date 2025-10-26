@@ -3,6 +3,7 @@
 
 #include "ASeedPlayerAnimInst.h"
 #include "ASeedPlayer.h"
+#include "../ASeedGameMode.h"
 
 void UASeedPlayerAnimInst::NativeInitializeAnimation()
 {
@@ -31,4 +32,10 @@ void UASeedPlayerAnimInst::AnimNotify_Reloaded()
 	{
 		Owner->Reloaded();
 	}
+}
+
+void UASeedPlayerAnimInst::AnimNotify_GameOver()
+{
+	AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
+	GM->GameOver();
 }

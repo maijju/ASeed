@@ -21,7 +21,9 @@ enum class EPlayerStats
 	AttackSpeed,
 	MoveSpeed,
 	Defense,
-	CooldownReduce
+	CooldownReduce,
+	ExpBonus,
+	CoreBonus
 };
 
 USTRUCT(BlueprintType)
@@ -64,13 +66,10 @@ public:
 	float		CooldownReduce = 0.f;
 
 	UPROPERTY(EditAnywhere)
-	int32		Level = 1;
+	float		ExpBonus = 0.f;
 
 	UPROPERTY(EditAnywhere)
-	int32		Exp = 0;
-
-	UPROPERTY(EditAnywhere)
-	int32		Gold = 0;
+	float		CoreBonus = 0.f;
 };
 
 /*---------------------------------------*/
@@ -93,6 +92,9 @@ struct ASEED_API FPlayerSkillData : public FTableRowBase
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere)
+	FName SkillName;
+
+	UPROPERTY(EditAnywhere)
 	FGameplayTag AbilityTag;
 
 	UPROPERTY(EditAnywhere)
@@ -100,6 +102,9 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	float AmmoCost;
+
+	UPROPERTY(EditAnywhere)
+	FString Description;
 };
 
 /*---------------------------------------*/
@@ -138,6 +143,9 @@ struct ASEED_API FPlayerBulletData : public FTableRowBase
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere)
+	FName BulletName;
+
+	UPROPERTY(EditAnywhere)
 	TArray<FGameplayTag> GameplayEffectTags;
 
 	UPROPERTY(EditAnywhere)
@@ -154,4 +162,7 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	int32 PierceCount;
+
+	UPROPERTY(EditAnywhere)
+	FString Description;
 };

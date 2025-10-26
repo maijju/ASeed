@@ -40,6 +40,7 @@ void UASeedUI_LevelUp::InitializeCards(const TArray<FLevelUpRewardInfo>& Shuffle
 	{
 		Cards[i].Stat->SetText(ShuffleResults[i].StatName);
 		
+		// Decide Value here
 		int32 Value = FMath::RandRange(ShuffleResults[i].MinValue, ShuffleResults[i].MaxValue);
 		Cards[i].Value = Value;
 		

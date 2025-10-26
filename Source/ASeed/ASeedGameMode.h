@@ -17,8 +17,21 @@ struct FRewards
 
 public:
 	float ExpReward;
-	float CreditReward;
+	float CoreReward;
 };
+
+USTRUCT()
+struct FModuleSummary
+{
+	GENERATED_BODY()
+
+public:
+	FName ModuleKey;
+	FName ModuleName;
+	FName ModuleType;
+	FString ModuleDesc;
+};
+
 
 UCLASS()
 class ASEED_API AASeedGameMode : public AGameModeBase
@@ -36,10 +49,16 @@ protected:
 	TObjectPtr<class AASeedPlayer> Player;
 	TObjectPtr<class AASeedPlayerController> PlayerController;
 	TArray<struct FLevelInfo> Levels;
+	TArray<struct FModuleInfo> Modules;
 	TArray<struct FLevelUpRewardInfo> LevelUpRewards;
 	int32 CurrentLevel = 0;
+	int32 NumOfBuyModules = 0;
 	float CurrentExp = 0;
-	float CurrentCredit = 0;
+	float CurrentCore = 0;
+	FModuleSummary CurrentBulletModule;
+	FModuleSummary CurrentSkillAModule;
+	FModuleSummary CurrentSkillBModule;
+	FModuleSummary SelectedModule;
 
 	/*--------------DATA--------------*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
@@ -76,11 +95,29 @@ protected:
 	/*--------------UI--------------*/
 	TObjectPtr<class UASeedUI_LevelProgress> LevelHUD;
 	TObjectPtr<class UASeedUI_LevelUp> LevelUpUI;
+	TObjectPtr<class UASeedUI_PlayerHUD> PlayerHUD;
+	TObjectPtr<class UASeedUI_ModuleDetected> ModuleDetectedUI;
+	TObjectPtr<class UASeedUI_ApplyBullet> ApplyBulletUI;
+	TObjectPtr<class UASeedUI_ApplySkill> ApplySkillUI;
+	TObjectPtr<class UASeedUI_GameOver> GameOverUI;
 
 public:
 	void OnMainWidgetLoaded(UUserWidget* MainWidget);
 	void ExecuteWave();
 	void EarnEliminationRewards(const FRewards& Rewards);
+	void TryInstallModule();
+	UFUNCTION()
+	void OnConfirmModule();
+	UFUNCTION()
+	void OnApplyBullet();
+	UFUNCTION()
+	void OnApplySkillA();
+	UFUNCTION()
+	void OnApplySkillB();
+	UFUNCTION()
+	void OnDiscardChange();
+
+	void GameOver();
 
 protected:
 	void LevelUp();

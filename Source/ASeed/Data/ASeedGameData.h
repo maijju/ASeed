@@ -48,12 +48,24 @@ public:
 };
 
 USTRUCT(BlueprintType)
+struct FModuleInfo
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+	float MaxCore;
+};
+
+USTRUCT(BlueprintType)
 struct FLevelData : public FTableRowBase
 {
 	GENERATED_BODY()
 public:
 	UPROPERTY(EditAnywhere)
 	TArray<FLevelInfo> Levels;
+
+	UPROPERTY(EditAnywhere)
+	TArray<FModuleInfo> Modules;
 };
 
 /*---------------------------------------*/

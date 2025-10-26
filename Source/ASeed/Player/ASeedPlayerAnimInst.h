@@ -14,7 +14,8 @@ enum class EMontageType
 {
 	Attack,
 	Reload,
-	Rolling
+	Rolling,
+	Die
 };
 
 UCLASS()
@@ -63,4 +64,6 @@ public:
 	void AnimNotify_AttackR();
 	UFUNCTION()
 	void AnimNotify_Reloaded();
+	UFUNCTION()
+	void AnimNotify_GameOver();
 };
