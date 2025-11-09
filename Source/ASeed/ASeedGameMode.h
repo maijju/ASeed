@@ -99,6 +99,7 @@ protected:
 	TObjectPtr<class UASeedUI_ModuleDetected> ModuleDetectedUI;
 	TObjectPtr<class UASeedUI_ApplyBullet> ApplyBulletUI;
 	TObjectPtr<class UASeedUI_ApplySkill> ApplySkillUI;
+	TObjectPtr<class UASeedUI_Status> StatusUI;
 	TObjectPtr<class UASeedUI_GameOver> GameOverUI;
 
 public:
@@ -116,6 +117,9 @@ public:
 	void OnApplySkillB();
 	UFUNCTION()
 	void OnDiscardChange();
+
+	void ShowStatus(const class UASeedAttributeSet* Attr);
+	void CloseStatus();
 
 	void GameOver();
 

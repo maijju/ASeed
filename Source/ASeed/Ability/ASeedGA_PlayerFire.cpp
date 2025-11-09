@@ -29,38 +29,42 @@ void UASeedGA_PlayerFire::ActivateAbility(const FGameplayAbilitySpecHandle Handl
 		return;
 	}
 
+	/*--------------INIT--------------*/
 	AASeedPlayer* Player = Cast<AASeedPlayer>(ActorInfo->AvatarActor.Get());
-	if (Player)
+	UAbilitySystemComponent* PlayerASC = GetAbilitySystemComponentFromActorInfo();
+
+	if (!Player || !PlayerASC)
 	{
-		/*--------------INIT--------------*/
-		UAbilitySystemComponent* PlayerASC = GetAbilitySystemComponentFromActorInfo();
-		const UASeedPlayerBulletData* BulletData = Cast<UASeedPlayerBulletData>(TriggerEventData->OptionalObject);
-		FVector MuzzleLocation;
-		if (!BulletData)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("BulletData is nullptr (in ability)"));
-		}
-		else
-		{
-			MuzzleLocation = BulletData->Location;
-		}
-
-		/*--------------SPAWN BULLET--------------*/
-		FActorSpawnParameters Param;
-		Param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
-
-		AASeedPlayerBullet* Bullet = GetWorld()->SpawnActor<AASeedPlayerBullet>(MuzzleLocation, Player->GetActorRotation(), Param);
-		Bullet->SetDamage(PlayerASC->GetSet<UASeedAttributeSet>()->GetAttack());
-		Bullet->SetBulletData(BulletData);
-		Bullet->SetOwnerController(Player->GetController());
-
-		/*--------------CUE--------------*/
-		FGameplayCueParameters CueParam;
-		CueParam.Instigator = Player;
-		CueParam.EffectCauser = Player;
-		CueParam.Location = MuzzleLocation;
-		PlayerASC->ExecuteGameplayCue(BulletData->GameplayMuzzleFlashCueTag, CueParam);
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
 	}
+
+	const UASeedPlayerBulletData* BulletData = Cast<UASeedPlayerBulletData>(TriggerEventData->OptionalObject);
+	if (!BulletData)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("BulletData is nullptr (in ability)"));
+		EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+		return;
+	}
+	
+	FVector MuzzleLocation = BulletData->Location;
+
+	/*--------------SPAWN BULLET--------------*/
+	FActorSpawnParameters Param;
+	Param.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	AASeedPlayerBullet* Bullet = GetWorld()->SpawnActor<AASeedPlayerBullet>(MuzzleLocation, Player->GetActorRotation(), Param);
+	Bullet->SetDamage(PlayerASC->GetSet<UASeedAttributeSet>()->GetAttack());
+	Bullet->SetBulletData(BulletData);
+	Bullet->SetOwnerController(Player->GetController());
+	Bullet->Body->SetGenerateOverlapEvents(true);
+
+	/*--------------CUE--------------*/
+	FGameplayCueParameters CueParam;
+	CueParam.Instigator = Player;
+	CueParam.EffectCauser = Player;
+	CueParam.Location = MuzzleLocation;
+	PlayerASC->ExecuteGameplayCue(BulletData->GameplayMuzzleFlashCueTag, CueParam);
 
 	EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
 }

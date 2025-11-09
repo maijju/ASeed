@@ -5,6 +5,8 @@
 
 void UASeedUI_LevelProgress::NativeOnInitialized()
 {
+	Super::NativeOnInitialized();
+
 	ExpBar = Cast<UProgressBar>(GetWidgetFromName(TEXT("ExpBar")));
 	LevelLabel = Cast<UTextBlock>(GetWidgetFromName(TEXT("LevelLabel")));
 }

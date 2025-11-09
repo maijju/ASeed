@@ -5,6 +5,8 @@
 
 void UASeedUI_ModuleDetected::NativeOnInitialized()
 {
+	Super::NativeOnInitialized();
+
 	ModuleName = Cast<UTextBlock>(GetWidgetFromName(TEXT("ModuleName")));
 	ModuleType = Cast<UTextBlock>(GetWidgetFromName(TEXT("ModuleType")));
 	ModuleDesc = Cast<UTextBlock>(GetWidgetFromName(TEXT("ModuleDesc")));

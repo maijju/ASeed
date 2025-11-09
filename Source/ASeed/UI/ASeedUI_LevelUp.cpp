@@ -5,6 +5,8 @@
 
 void UASeedUI_LevelUp::NativeOnInitialized()
 {
+	Super::NativeOnInitialized();
+
 	Cards.SetNum(3);
 
 	for (int32 i=0; i<3; i++)

@@ -11,6 +11,7 @@
 #include "UI/ASeedUI_ModuleDetected.h"
 #include "UI/ASeedUI_ApplyBullet.h"
 #include "UI/ASeedUI_ApplySkill.h"
+#include "UI/ASeedUI_Status.h"
 #include "UI/ASeedUI_GameOver.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
@@ -103,6 +104,7 @@ void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
     ModuleDetectedUI = Cast<UASeedUI_ModuleDetected>(MainWidget->GetWidgetFromName(TEXT("ModuleDetected")));
     ApplyBulletUI = Cast<UASeedUI_ApplyBullet>(MainWidget->GetWidgetFromName(TEXT("ApplyBullet")));
     ApplySkillUI = Cast<UASeedUI_ApplySkill>(MainWidget->GetWidgetFromName(TEXT("ApplySkill")));
+    StatusUI = Cast<UASeedUI_Status>(MainWidget->GetWidgetFromName(TEXT("Status")));
     GameOverUI = Cast<UASeedUI_GameOver>(MainWidget->GetWidgetFromName(TEXT("GameOver")));
 
     if (LevelHUD)
@@ -134,6 +136,11 @@ void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
     if (ApplySkillUI)
     {
         ApplySkillUI->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    if (StatusUI)
+    {
+        StatusUI->SetVisibility(ESlateVisibility::Collapsed);
     }
 
     if (GameOverUI)
@@ -389,6 +396,26 @@ void AASeedGameMode::OnDiscardChange()
     ApplyBulletUI->SetVisibility(ESlateVisibility::Collapsed);
     APlayerController* PC = Cast<APlayerController>(Player->GetController());
     PC->SetPause(false);
+}
+
+void AASeedGameMode::ShowStatus(const UASeedAttributeSet* Attr)
+{
+    StatusUI->SetVisibility(ESlateVisibility::Visible);
+
+    StatusUI->AttackText->SetText(FText::AsNumber(Attr->GetAttack()));
+    StatusUI->DefenseText->SetText(FText::AsNumber(Attr->GetDefense()));
+    StatusUI->MaxHPText->SetText(FText::AsNumber(Attr->GetHPMax()));
+    StatusUI->MaxAmmoText->SetText(FText::AsNumber(Attr->GetAmmoMax()));
+    StatusUI->CooldownReduceText->SetText(FText::AsNumber(Attr->GetCooldownReduce()));
+    StatusUI->AttackSpeedText->SetText(FText::AsNumber(Attr->GetAttackSpeed()));
+    StatusUI->MoveSpeedText->SetText(FText::AsNumber(Attr->GetMoveSpeed()));
+    StatusUI->ExpBonusText->SetText(FText::AsNumber(Attr->GetExpBonus()));
+    StatusUI->CoreBonusText->SetText(FText::AsNumber(Attr->GetCoreBonus()));
+}
+
+void AASeedGameMode::CloseStatus()
+{
+    StatusUI->SetVisibility(ESlateVisibility::Collapsed);
 }
 
 void AASeedGameMode::GameOver()

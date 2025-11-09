@@ -50,5 +50,8 @@ public:
 	void AnimNotify_AttackImpact();
 
 	UFUNCTION()
+	void AnimNotify_Fire();
+
+	UFUNCTION()
 	void AnimNotify_AttackEnd();
 };

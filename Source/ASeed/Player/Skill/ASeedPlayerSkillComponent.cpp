@@ -4,6 +4,10 @@
 #include "ASeedPlayerSkillComponent.h"
 #include "../ASeedPlayer.h"
 #include "../../Ability/Skill/ASeedGA_PlayerRolling.h"
+#include "../../Ability/Skill/ASeedGA_PlayerSpread.h"
+#include "../../Ability/Skill/ASeedGA_PlayerBoost.h"
+#include "../../Ability/Skill/ASeedGA_PlayerRampage.h"
+#include "../../Ability/Skill/ASeedGA_PlayerSlowmotion.h"
 
 UASeedPlayerSkillComponent::UASeedPlayerSkillComponent()
 {
@@ -17,9 +21,12 @@ void UASeedPlayerSkillComponent::BeginPlay()
 
 	UAbilitySystemComponent* ASC = Owner->GetAbilitySystemComponent();
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerRolling::StaticClass(), 1, INDEX_NONE, this));
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerSpread::StaticClass(), 1, INDEX_NONE, this));
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerBoost::StaticClass(), 1, INDEX_NONE, this));
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerSlowmotion::StaticClass(), 1, INDEX_NONE, this));
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerRampage::StaticClass(), 1, INDEX_NONE, this));
 
 	SkillData = SkillDataRef.LoadSynchronous();
-
 	if (!SkillData)
 		UE_LOG(LogTemp, Warning, TEXT("Failed to load SkillData"));
 }
@@ -38,6 +45,18 @@ void UASeedPlayerSkillComponent::TryActivateSkill(bool IsSkillA)
 	else
 	{
 		Row = SkillBData;
+	}
+
+
+	if (Owner->GetPlayerAnimInstance()->IsAnyMontagePlaying())
+	{
+		if (!Row->CanCancelAttack)
+			return;
+		else
+		{
+			if (!Owner->GetPlayerAnimInstance()->IsPlayingAttack())
+				return;
+		}
 	}
 
 	UAbilitySystemComponent* ASC = Owner->GetAbilitySystemComponent();

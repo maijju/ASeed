@@ -32,6 +32,34 @@ void UASeedPlayerAttributeSet::CallbackHPMax()
 	}
 }
 
+void UASeedPlayerAttributeSet::CallbackAmmo()
+{
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+
+	if (ASC)
+	{
+		AASeedPlayer* Player = Cast<AASeedPlayer>(ASC->GetAvatarActor());
+		if (Player)
+		{
+			Player->OnAmmoChanged();
+		}
+	}
+}
+
+void UASeedPlayerAttributeSet::CallbackAmmoMax()
+{
+	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();
+
+	if (ASC)
+	{
+		AASeedPlayer* Player = Cast<AASeedPlayer>(ASC->GetAvatarActor());
+		if (Player)
+		{
+			Player->OnAmmoMaxChanged();
+		}
+	}
+}
+
 void UASeedPlayerAttributeSet::CallbackMoveSpeed(float NewMoveSpeed)
 {
 	UAbilitySystemComponent* ASC = GetOwningAbilitySystemComponent();

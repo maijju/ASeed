@@ -2,18 +2,22 @@
 
 
 #include "ASeedEnemy.h"
-#include "../Data/ASeedEnemyData.h"
+
 #include "../Ability/ASeedGA_Hit.h"
-#include "ASeedEnemyController.h"
-#include "../ASeedGameMode.h"
+#include "../Ability/ASeedGA_EnemyFire.h"
 #include "../UI/ASeedUI_HPBar.h"
+
+#include "ASeedEnemyController.h"
 #include "BehaviorTree/BehaviorTree.h"
 #include "BehaviorTree/BlackboardComponent.h"
+
+#include "../ASeedGameMode.h"
 
 AASeedEnemy::AASeedEnemy()
 {
 	/*--------------DATA--------------*/
 	DataRef = FSoftObjectPath(TEXT("/Script/Engine.DataTable'/Game/Data/Enemy/DT_EnemyData.DT_EnemyData'"));
+	BulletDataRef = FSoftObjectPath(TEXT("/Script/Engine.DataTable'/Game/Data/Enemy/DT_EnemyBulletData.DT_EnemyBulletData'"));
 
 	/*--------------BODY--------------*/
 	Body->SetCanEverAffectNavigation(false);
@@ -75,6 +79,7 @@ void AASeedEnemy::BeginPlay()
 	/*--------------GAS--------------*/
 	ASC->InitAbilityActorInfo(this, this);
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_Hit::StaticClass(), 1, INDEX_NONE, this));
+	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_EnemyFire::StaticClass(), 1, INDEX_NONE, this));
 	ASC->RegisterGameplayTagEvent(FGameplayTag::RequestGameplayTag(FName("Custom.State.Stun")),
 		EGameplayTagEventType::NewOrRemoved).AddUObject(this, &AASeedEnemy::OnGameplayStun);
 
@@ -96,6 +101,20 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 		return;
 	}
 
+	bHasProjectile = Row->bHasProjectile;
+	BulletKey = Row->BulletKey;
+
+	if (bHasProjectile)
+	{
+		BulletData = BulletDataRef.LoadSynchronous();
+		BulletRow = BulletData->FindRow<FEnemyBulletData>(BulletKey, TEXT(""));
+		if (!BulletRow)
+		{
+			UE_LOG(LogTemp, Warning, TEXT("Failed to load data (%s)"), *BulletKey.ToString());
+			return;
+		}
+	}
+
 	/*--------------APPLYING MESH & ABP--------------*/
 	MeshComp->SetSkeletalMesh(Row->Mesh);
 	MeshComp->SetAnimInstanceClass(Row->ABP);
@@ -110,6 +129,24 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 	Body->SetRelativeRotation(FRotator(0.0, 90.0, 0.0));
 	MeshComp->SetRelativeLocation(FVector(0.0, 0.0, -Height/2));
 	WidgetComp->SetRelativeLocation(FVector(0, 0, Height + 30));
+
+	/*--------------SPOT LIGHT--------------*/
+	USpotLightComponent* SpotLight = NewObject<USpotLightComponent>(this, USpotLightComponent::StaticClass());
+	if (SpotLight)
+	{
+		SpotLight->AttachToComponent(Body, FAttachmentTransformRules::KeepRelativeTransform);
+		SpotLight->RegisterComponent();
+
+		SpotLight->SetRelativeLocation(FVector(0.0f, 0.0f, Height * 0.8f));
+		SpotLight->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
+
+		SpotLight->SetLightColor(FColor(255, 100, 100));
+		SpotLight->SetIntensity(1000.0f);
+		SpotLight->SetAttenuationRadius(600.0f);
+
+		SpotLight->SetInnerConeAngle(15.0f);
+		SpotLight->SetOuterConeAngle(40.0f);
+	}
 
 	/*--------------ASSIGN PROPERTIES--------------*/
 	AttackAbilityTag = Row->AttackAbilityTag;
@@ -157,21 +194,7 @@ void AASeedEnemy::Attack()
 		param.bTraceComplex = false;
 
 		bool Collision = GetWorld()->LineTraceSingleByChannel(result, HitStart, HitEnd,
-			ECollisionChannel::ECC_Visibility, param);
-
-		//if (Collision)
-		//{
-		//	DrawDebugLine(
-		//		GetWorld(),
-		//		HitStart,
-		//		result.ImpactPoint,
-		//		FColor::Red,
-		//		false,
-		//		0.5f,
-		//		0,
-		//		2.0f
-		//	);
-		//}
+			ECollisionChannel::ECC_GameTraceChannel6, param);
 
 		FGameplayEventData	EventData;
 		AAIController* AIController = Cast<AAIController>(GetController());
@@ -197,6 +220,27 @@ void AASeedEnemy::Attack()
 		EventData.TargetData.Add(TargetData);
 
 		UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(this, EventData.EventTag, EventData);
+	}
+}
+
+void AASeedEnemy::Fire()
+{
+	if (ASC)
+	{
+		TObjectPtr<UASeedEnemyBulletData> BulletPayload = NewObject<UASeedEnemyBulletData>();
+		BulletPayload->Location = MeshComp->GetSocketLocation(FName("Muzzle"));
+		BulletPayload->GameplayEffectTags = BulletRow->GameplayEffectTags;
+		BulletPayload->GameplayMuzzleFlashCueTag = BulletRow->GameplayMuzzleFlashCueTag;
+		BulletPayload->GameplayBulletHitCueTag = BulletRow->GameplayBulletHitCueTag;
+		BulletPayload->Mesh = BulletRow->Mesh;
+		BulletPayload->TrailEffect = BulletRow->TrailEffect;
+		BulletPayload->EffectDuration = BulletRow->EffectDuration;
+		BulletPayload->BulletSpeed = BulletRow->BulletSpeed;
+
+		FGameplayEventData EventData;
+		EventData.Instigator = Owner;
+		EventData.OptionalObject = BulletPayload;
+		ASC->HandleGameplayEvent(FGameplayTag::RequestGameplayTag(TEXT("Custom.Enemy.Fire")), &EventData);
 	}
 }
 

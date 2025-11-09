@@ -15,6 +15,8 @@ enum class EMontageType
 	Attack,
 	Reload,
 	Rolling,
+	Spread,
+	Rampage,
 	Die
 };
 
@@ -51,6 +53,11 @@ public:
 				Montage_JumpToSection(RollingSectionName, Montage->Get());
 			}
 		}
+	}
+
+	bool IsPlayingAttack()
+	{
+		return Montage_IsPlaying(MontageMap[EMontageType::Attack]);
 	}
 
 	void SetRollingSectionName(FName SectionName)

@@ -8,7 +8,10 @@
 
 #include "Projectile/ASeedPlayerBullet.h"
 #include "Projectile/ASeedPlayerProjectileComponent.h"
+
 #include "Skill/ASeedPlayerSkillComponent.h"
+
+#include "VFX/ASeedPlayerVFXComponent.h"
 
 #include "../AttributeSet/ASeedPlayerAttributeSet.h"
 #include "../Data/ASeedPlayerData.h"
@@ -32,6 +35,7 @@
 
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnPlayerHit, float, CurrentHp, float, MaxHp);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnUseAmmo, float, CurrentAmmo, float, MaxAmmo);
 
 UCLASS()
 class ASEED_API AASeedPlayer : public ACharacter, public IAbilitySystemInterface
@@ -41,6 +45,9 @@ class ASEED_API AASeedPlayer : public ACharacter, public IAbilitySystemInterface
 public:
 	UPROPERTY(BlueprintAssignable)
 	FOnPlayerHit OnPlayerHit;
+
+	UPROPERTY(BlueprintAssignable)
+	FOnUseAmmo OnUseAmmo;
 
 protected:
 	/*--------------CAMERA--------------*/
@@ -85,7 +92,12 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	FName SkillBKey = FName("Empty");
 
+	/*--------------VFX--------------*/
+	UPROPERTY(VisibleAnywhere, Category = "VFX")
+	UASeedPlayerVFXComponent* VFXComp;
+
 	/*--------------LOCAL VARIABLES--------------*/
+	TObjectPtr<class AASeedGameMode> GM;
 	TObjectPtr<UASeedPlayerAnimInst> AnimInst;
 	TObjectPtr<UAbilitySystemComponent> ASC;
 	TObjectPtr<UASeedPlayerAttributeSet> AttributeSet;
@@ -105,6 +117,8 @@ protected:
 	void Attack(); // pair with Fire
 	void Reload(); // pair with Reloaded
 	void InstallModule();
+	void ShowStatus();
+	void CloseStatus();
 
 public:
 	void Fire(FName SocketName);
@@ -132,6 +146,8 @@ public:
 public:
 	void OnDamage(bool IsDead);
 	void OnHPMaxChanged();
+	void OnAmmoChanged();
+	void OnAmmoMaxChanged();
 	void OnGameplayStun()
 	{
 
@@ -143,6 +159,10 @@ public:
 	UASeedPlayerSkillComponent* GetSkillComponent()
 	{
 		return SkillComp;
+	}
+	UASeedPlayerVFXComponent* GetVFXComponent()
+	{
+		return VFXComp;
 	}
 	void UpdateBulletKey(FName Key)
 	{
@@ -158,6 +178,10 @@ public:
 	{
 		SkillBKey = Key;
 		SkillComp->UpdateSkillBDataByKey(Key);
+	}
+	void SetRotationFreeze(bool Enable)
+	{
+		bRotationFreeze = Enable;
 	}
 
 protected:

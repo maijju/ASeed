@@ -53,11 +53,14 @@ AASeedPlayer::AASeedPlayer()
 	AttributeSet = CreateDefaultSubobject<UASeedPlayerAttributeSet>(TEXT("AttributeSet"));
 	ASC->AddAttributeSetSubobject<UASeedPlayerAttributeSet>(AttributeSet);
 
+	/*--------------PROJECTILE--------------*/
+	ProjComp = CreateDefaultSubobject<UASeedPlayerProjectileComponent>(TEXT("ProjectileComponent"));
+	
 	/*--------------SKILL--------------*/
 	SkillComp = CreateDefaultSubobject<UASeedPlayerSkillComponent>(TEXT("SkillComponent"));
 
-	/*--------------PROJECTILE--------------*/
-	ProjComp = CreateDefaultSubobject<UASeedPlayerProjectileComponent>(TEXT("ProjectileComponent"));
+	/*--------------VFX--------------*/
+	VFXComp = CreateDefaultSubobject<UASeedPlayerVFXComponent>(TEXT("VFXComponent"));
 }
 
 void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -79,6 +82,8 @@ void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInputComponent->BindAction(SkillAAction, ETriggerEvent::Started, this, &AASeedPlayer::SkillA);
 		EnhancedInputComponent->BindAction(SkillBAction, ETriggerEvent::Started, this, &AASeedPlayer::SkillB);
 		EnhancedInputComponent->BindAction(InstallModuleAction, ETriggerEvent::Started, this, &AASeedPlayer::InstallModule);
+		EnhancedInputComponent->BindAction(ShowStatusAction, ETriggerEvent::Started, this, &AASeedPlayer::ShowStatus);
+		EnhancedInputComponent->BindAction(ShowStatusAction, ETriggerEvent::Completed, this, &AASeedPlayer::CloseStatus);
 	}
 }
 
@@ -86,6 +91,9 @@ void AASeedPlayer::BeginPlay()
 {
 	Super::BeginPlay();
 	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	
+	/*--------------GAMEMODE--------------*/
+	GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
 
 	/*--------------ANIMINST--------------*/
 	AnimInst = Cast<UASeedPlayerAnimInst>(GetMesh()->GetAnimInstance());
@@ -114,6 +122,7 @@ void AASeedPlayer::BeginPlay()
 	ASC->InitAbilityActorInfo(this, this);
 
 	OnPlayerHit.Broadcast(AttributeSet->GetHP(), AttributeSet->GetHPMax());
+	OnUseAmmo.Broadcast(AttributeSet->GetAmmo(), AttributeSet->GetAmmoMax());
 	
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_Hit::StaticClass(), 1, INDEX_NONE, this));
 	ASC->GiveAbility(FGameplayAbilitySpec(UASeedGA_PlayerFire::StaticClass(), 1, INDEX_NONE, this));
@@ -157,9 +166,12 @@ void AASeedPlayer::Tick(float DeltaTime)
 	CachedTarget = Target;
 
 	/*--------------PLAYER ROTATE(LOOK MOUSE OR TARGET)--------------*/
-	FVector TargetLocation = Hit.Location;
-	FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation);
-	SetActorRotation(FRotator(0.f, LookAt.Yaw, 0.f));
+	if (!bRotationFreeze)
+	{
+		FVector TargetLocation = Hit.Location;
+		FRotator LookAt = UKismetMathLibrary::FindLookAtRotation(GetActorLocation(), TargetLocation);
+		SetActorRotation(FRotator(0.f, LookAt.Yaw, 0.f));
+	}
 }
 
 void AASeedPlayer::Move(const FInputActionValue& Value)
@@ -204,8 +216,19 @@ void AASeedPlayer::InstallModule()
 {
 	if (AnimInst->IsAnyMontagePlaying())
 		return;
-	AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
 	GM->TryInstallModule();
+}
+
+void AASeedPlayer::ShowStatus()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Ang"))
+	GM->ShowStatus(AttributeSet);
+}
+
+void AASeedPlayer::CloseStatus()
+{
+	UE_LOG(LogTemp, Warning, TEXT("gimo"))
+	GM->CloseStatus();
 }
 
 void AASeedPlayer::Fire(FName SocketName)
@@ -241,5 +264,15 @@ void AASeedPlayer::OnDamage(bool IsDead)
 void AASeedPlayer::OnHPMaxChanged()
 {
 	OnPlayerHit.Broadcast(AttributeSet->GetHP(), AttributeSet->GetHPMax());
+}
+
+void AASeedPlayer::OnAmmoChanged()
+{
+	OnUseAmmo.Broadcast(AttributeSet->GetAmmo(), AttributeSet->GetAmmoMax());
+}
+
+void AASeedPlayer::OnAmmoMaxChanged()
+{
+	OnUseAmmo.Broadcast(AttributeSet->GetAmmo(), AttributeSet->GetAmmoMax());
 }
 

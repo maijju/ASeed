@@ -13,7 +13,7 @@ UASeedBT_Attack::UASeedBT_Attack()
 	bNotifyTick = true;
 	bNotifyTaskFinished = true;
 
-	// ºí·¢º¸µå¿¡¼­ »ç¿ëÇÒ Å° ¼³Á¤.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å° ï¿½ï¿½ï¿½ï¿½.
 	TargetKey.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UASeedBT_Attack, TargetKey), AActor::StaticClass());
 }
 
@@ -21,7 +21,7 @@ EBTNodeResult::Type UASeedBT_Attack::ExecuteTask(UBehaviorTreeComponent& OwnerCo
 {
 	AAIController* AIController = OwnerComp.GetAIOwner();
 
-	// ºí·¢º¸µå ÄÄÆ÷³ÍÅÍ¸¦ ¾ò¾î¿Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
 	if (!AIController || !BlackboardComp)
@@ -58,10 +58,10 @@ EBTNodeResult::Type UASeedBT_Attack::AbortTask(UBehaviorTreeComponent& OwnerComp
 
 void UASeedBT_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds)
 {
-	// ÇöÀç µ¿ÀÛµÇ´Â AIController¸¦ ¾ò¾î¿Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ´ï¿½ AIControllerï¿½ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
 	AAIController* AIController = OwnerComp.GetAIOwner();
 
-	// ºí·¢º¸µå¿¡ ÁöÁ¤µÈ Å¸°ÙÀÌ ¾ø¾îÁú °æ¿ì ÅÂ½ºÅ© Á¾·á.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Â½ï¿½Å© ï¿½ï¿½ï¿½ï¿½.
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
 	if (!AIController || !BlackboardComp)
@@ -86,7 +86,7 @@ void UASeedBT_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMem
 		return;
 	}
 
-	// °ø°ÝÀÌ ³¡³µÀ»¶§ °Å¸® Ã¼Å©
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½ Ã¼Å©
 	bool AttackEnd = BlackboardComp->GetValueAsBool(TEXT("AttackEnd"));
 
 	if (AttackEnd)
@@ -109,26 +109,26 @@ void UASeedBT_Attack::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMem
 		Capsule = Cast<UCapsuleComponent>(Monster->GetRootComponent());
 		MonsterLocation.Z -= Capsule->GetScaledCapsuleHalfHeight();
 
-		// Àû°ú ÇÃ·¹ÀÌ¾î »çÀÌÀÇ °Å¸®
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½
 		float Distance = FVector::Dist(TargetLocation, MonsterLocation);
 
-		// µÑ »çÀÌÀÇ °Å¸®°¡ °ø°ÝÇÒ °Å¸®º¸´Ù ¸Ö¸® ÀÖÀ» °æ¿ì °ø°ÝÀ» Á¾·áÇÑ´Ù.
+		// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Å¸ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ö¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ñ´ï¿½.
 		if (Distance > AttackRange)
 		{
 			FinishLatentTask(OwnerComp, EBTNodeResult::Succeeded);
 			return;
 		}
 
-		//else
-		//{
-		//	// È¸Àü ÃÊ±âÈ­
-		//	TargetLocation.Z = 0.0;
-		//	MonsterLocation.Z = 0.0;
+		else
+		{
+		
+			TargetLocation.Z = 0.0;
+			MonsterLocation.Z = 0.0;
 
-		//	FRotator Rot = UKismetMathLibrary::FindLookAtRotation(TargetLocation, MonsterLocation);
+			FRotator Rot = UKismetMathLibrary::FindLookAtRotation(MonsterLocation, TargetLocation);
 
-		//	Monster->SetActorRotation(Rot);
-		//}
+			Monster->SetActorRotation(Rot);
+		}
 	}
 }
 

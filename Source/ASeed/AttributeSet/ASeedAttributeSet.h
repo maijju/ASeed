@@ -93,8 +93,10 @@ public:
 	// 인자로 들어오는 Data 의 속성을 체크해서 어떤 속성의 값이 변경되었는지를
 	// 여기에서 체크할 수 있다.
 	virtual void PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data);
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
 
 	virtual void CallbackAmmo();
+	virtual void CallbackAmmoMax();
 	virtual void CallbackHP(bool IsDead);
 	virtual void CallbackHPMax();
 	virtual void CallbackMP();

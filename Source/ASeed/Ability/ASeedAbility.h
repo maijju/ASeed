@@ -53,6 +53,7 @@ protected:
 public:
 	void AddAbilityCost(ECostType Type, float Cost)
 	{
+		CostArray.Empty();
 		FAbilityCost	Result;
 		Result.Type = Type;
 		Result.Cost = Cost;

@@ -13,13 +13,14 @@ AASeedPlayerBullet::AASeedPlayerBullet()
 	SetRootComponent(Body);
 	Body->SetBoxExtent(FVector(60.0, 60.0, 60.0));
 	Body->SetCollisionProfileName(TEXT("PlayerAttack"));
+	Body->OnComponentBeginOverlap.AddDynamic(this, &AASeedPlayerBullet::OnProjectileHit);
+	Body->SetGenerateOverlapEvents(false);
 
 	/*--------------MOVEMENT--------------*/
 	MoveComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));
 	MoveComp->SetUpdatedComponent(Body);
 	MoveComp->ProjectileGravityScale = 0.f;
-	MoveComp->InitialSpeed = 2000.f;
-	MoveComp->OnProjectileStop.AddDynamic(this, &AASeedPlayerBullet::ProjectileStop);
+	MoveComp->InitialSpeed = 2500.f;
 }
 
 // Called every frame
@@ -37,7 +38,8 @@ void AASeedPlayerBullet::Tick(float DeltaTime)
 	}
 }
 
-void AASeedPlayerBullet::ProjectileStop(const FHitResult& Hit)
+void AASeedPlayerBullet::OnProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+	UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit)
 {
 	IAbilitySystemInterface* ASI = Cast<IAbilitySystemInterface>(OwnerController->GetPawn());
 
@@ -72,9 +74,12 @@ void AASeedPlayerBullet::ProjectileStop(const FHitResult& Hit)
 			EventData.TargetData.Add(TargetData);
 
 			UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerController->GetPawn(), EventData.EventTag, EventData);
+
+			PierceCount--;
+			if (PierceCount <= 0)
+				Destroy();
+			//Deactivate();
 		}
 	}
-	Destroy();
-	//Deactivate();
 }
 

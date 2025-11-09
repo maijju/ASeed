@@ -17,6 +17,8 @@ class ASEED_API UASeedPlayerAttributeSet : public UASeedAttributeSet
 public:
 	virtual void CallbackHP(bool IsDead);
 	virtual void CallbackHPMax();
+	virtual void CallbackAmmo();
+	virtual void CallbackAmmoMax();
 	virtual void CallbackMoveSpeed(float NewMoveSpeed);
 	
 };

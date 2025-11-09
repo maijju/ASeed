@@ -29,10 +29,12 @@ class ASEED_API AASeedPlayerBullet : public AActor
 public:
 	AASeedPlayerBullet();
 
-protected:
-	/*--------BASIC COMPS--------*/
+public:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UBoxComponent> Body;
+
+protected:
+	/*--------BASIC COMPS--------*/
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<UProjectileMovementComponent> MoveComp;
 	UParticleSystemComponent* ParticleComp;
@@ -45,6 +47,7 @@ protected:
 	class AController* OwnerController;
 	UPROPERTY(EditAnywhere)
 	float LifeDuration = 1;
+	int32 PierceCount;
 	float Damage = 0;
 
 protected:
@@ -79,6 +82,7 @@ public:
 	void SetBulletData(const UASeedPlayerBulletData* Data)
 	{
 		BulletData = Data;
+		PierceCount = BulletData->PierceCount;
 		ApplyTrailEffect();
 	}
 
@@ -95,5 +99,6 @@ public:
 
 public:
 	UFUNCTION()
-	void ProjectileStop(const FHitResult& Hit);
+	void OnProjectileHit(UPrimitiveComponent* OverlappedComp, AActor* OtherActor,
+		UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& Hit);
 };

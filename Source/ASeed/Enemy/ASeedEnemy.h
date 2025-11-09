@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "ASeedTargetPawn.h"
 
+#include "../Data/ASeedEnemyData.h"
+
 #include "GameFramework/FloatingPawnMovement.h"
 #include "ASeedEnemyAnimInst.h"
 #include "Components/WidgetComponent.h"
@@ -37,8 +39,16 @@ protected:
 	UPROPERTY();
 	UDataTable* Data;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
+	FName BulletKey;
+	TSoftObjectPtr<UDataTable> BulletDataRef;
+	UPROPERTY();
+	UDataTable* BulletData;
+	FEnemyBulletData* BulletRow;
+
 	/*--------------LOCALS--------------*/
 	TObjectPtr<UASeedEnemyAnimInst> AnimInst;
+	float bHasProjectile;
 	float ExpReward;
 	float CreditReward;
 
@@ -82,6 +92,7 @@ public:
 		 AnimInst->SetAnimState(State);
 	}
 	void Attack();
+	void Fire();
 	void OnDamage();
 	UFUNCTION()
 	void OnGameplayStun(const FGameplayTag Tag, int32 Count);

@@ -19,6 +19,14 @@ void UASeedEnemyAnimInst::AnimNotify_AttackImpact()
 	}
 }
 
+void UASeedEnemyAnimInst::AnimNotify_Fire()
+{
+	if (IsValid(Owner))
+	{
+		Owner->Fire();
+	}
+}
+
 void UASeedEnemyAnimInst::AnimNotify_AttackEnd()
 {
 	if (IsValid(Owner))

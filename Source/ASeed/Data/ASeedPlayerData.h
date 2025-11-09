@@ -104,6 +104,9 @@ public:
 	float AmmoCost;
 
 	UPROPERTY(EditAnywhere)
+	bool CanCancelAttack;
+
+	UPROPERTY(EditAnywhere)
 	FString Description;
 };
 

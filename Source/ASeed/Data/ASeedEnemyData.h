@@ -26,6 +26,12 @@ public:
 	TMap<FName, TObjectPtr<UAnimSequence>> SeqMap;
 
 	UPROPERTY(EditAnywhere)
+	bool bHasProjectile;
+
+	UPROPERTY(EditAnywhere)
+	FName BulletKey;
+
+	UPROPERTY(EditAnywhere)
 	FGameplayTag AttackAbilityTag;
 
 	UPROPERTY(EditAnywhere)
@@ -72,4 +78,67 @@ public:
 
 	UPROPERTY(EditAnywhere)
 	int32		Gold = 0;
+};
+
+/*---------------------------------------*/
+/*--------------BULLET DATA--------------*/
+/*---------------------------------------*/
+UCLASS()
+class ASEED_API UASeedEnemyBulletData : public UObject
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY()
+	FVector Location;
+
+	UPROPERTY(EditAnywhere)
+	TArray<FGameplayTag> GameplayEffectTags;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayMuzzleFlashCueTag;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayBulletHitCueTag;
+
+	UPROPERTY(EditAnywhere)
+	UStaticMesh* Mesh;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* TrailEffect;
+
+	UPROPERTY(EditAnywhere)
+	float EffectDuration;
+
+	UPROPERTY(EditAnywhere)
+	float BulletSpeed;
+};
+
+USTRUCT(BlueprintType)
+struct ASEED_API FEnemyBulletData : public FTableRowBase
+{
+	GENERATED_BODY()
+public:
+	UPROPERTY(EditAnywhere)
+	FName BulletName;
+
+	UPROPERTY(EditAnywhere)
+	TArray<FGameplayTag> GameplayEffectTags;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayMuzzleFlashCueTag;
+
+	UPROPERTY(EditAnywhere)
+	FGameplayTag GameplayBulletHitCueTag;
+
+	UPROPERTY(EditAnywhere)
+	UStaticMesh* Mesh;
+
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* TrailEffect;
+
+	UPROPERTY(EditAnywhere)
+	float EffectDuration;
+
+	UPROPERTY(EditAnywhere)
+	float BulletSpeed = 1000.f;
 };
