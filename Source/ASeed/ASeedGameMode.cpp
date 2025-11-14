@@ -12,6 +12,8 @@
 #include "UI/ASeedUI_ApplyBullet.h"
 #include "UI/ASeedUI_ApplySkill.h"
 #include "UI/ASeedUI_Status.h"
+#include "UI/ASeedUI_BossHP.h"
+#include "UI/HUD/ASeedUI_Timer.h"
 #include "UI/ASeedUI_GameOver.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
@@ -34,6 +36,8 @@
 
 AASeedGameMode::AASeedGameMode()
 {
+    PrimaryActorTick.bCanEverTick = true;
+
     /*--------------DATA--------------*/
     WaveDataRef = FSoftObjectPath(TEXT("/Script/Engine.DataTable'/Game/Data/Game/DT_WaveData.DT_WaveData'"));
     LevelDataRef = FSoftObjectPath(TEXT("/Script/Engine.DataTable'/Game/Data/Game/DT_LevelData.DT_LevelData'"));
@@ -96,6 +100,20 @@ void AASeedGameMode::BeginPlay()
     ExecuteWave();
 }
 
+void AASeedGameMode::Tick(float DeltaTime)
+{
+    GameTimer -= DeltaTime;
+    if (TimerUI)
+    {
+        TimerUI->SetTimer(GameTimer);
+    }
+
+    if (GameTimer <= 0)
+    {
+        // VICTORY
+    }
+}
+
 void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
 {
     LevelHUD = Cast<UASeedUI_LevelProgress>(MainWidget->GetWidgetFromName(TEXT("LevelHUD")));
@@ -105,6 +123,8 @@ void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
     ApplyBulletUI = Cast<UASeedUI_ApplyBullet>(MainWidget->GetWidgetFromName(TEXT("ApplyBullet")));
     ApplySkillUI = Cast<UASeedUI_ApplySkill>(MainWidget->GetWidgetFromName(TEXT("ApplySkill")));
     StatusUI = Cast<UASeedUI_Status>(MainWidget->GetWidgetFromName(TEXT("Status")));
+    BossHPUI = Cast<UASeedUI_BossHP>(MainWidget->GetWidgetFromName(TEXT("BossHP")));
+    TimerUI = Cast<UASeedUI_Timer>(MainWidget->GetWidgetFromName(TEXT("Timer")));
     GameOverUI = Cast<UASeedUI_GameOver>(MainWidget->GetWidgetFromName(TEXT("GameOver")));
 
     if (LevelHUD)
@@ -141,6 +161,11 @@ void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
     if (StatusUI)
     {
         StatusUI->SetVisibility(ESlateVisibility::Collapsed);
+    }
+
+    if (BossHPUI)
+    {
+        BossHPUI->SetVisibility(ESlateVisibility::Collapsed);
     }
 
     if (GameOverUI)
@@ -194,7 +219,7 @@ void AASeedGameMode::ExecuteWave()
             Enemy->InitializeEnemy(Waves[CurrentWave].EnemyKey);
         }
     }
-
+    
     /*---------RESERVE NEXT WAVE---------*/
     if (!Waves[CurrentWave].bIsBossWave)
     {
@@ -416,6 +441,21 @@ void AASeedGameMode::ShowStatus(const UASeedAttributeSet* Attr)
 void AASeedGameMode::CloseStatus()
 {
     StatusUI->SetVisibility(ESlateVisibility::Collapsed);
+}
+
+void AASeedGameMode::SetBossHPPercent(float CurrentHP, float MaxHP)
+{
+    if (CurrentHP <= 0)
+        BossHPUI->SetVisibility(ESlateVisibility::Collapsed);
+    else
+    {
+        BossHPUI->SetHPPercent(CurrentHP, MaxHP);
+    }
+}
+
+void AASeedGameMode::SetBossName(FText Name)
+{
+    BossHPUI->SetName(Name);
 }
 
 void AASeedGameMode::GameOver()

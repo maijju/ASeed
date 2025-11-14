@@ -56,6 +56,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	UCameraComponent* FollowCamera;
 
+	/*--------------LIGHT--------------*/
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Light, meta = (AllowPrivateAccess = "true"))
+	USpotLightComponent* SpotLight;
+
 	/*--------------INPUT--------------*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputMappingContext* DefaultMappingContext;
@@ -183,6 +187,8 @@ public:
 	{
 		bRotationFreeze = Enable;
 	}
+	UFUNCTION(BlueprintImplementableEvent)
+	void ZaWarudo(bool Enable);
 
 protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;

@@ -14,6 +14,7 @@ enum class EMontageType
 {
 	Attack,
 	Reload,
+	InstallModule,
 	Rolling,
 	Spread,
 	Rampage,
@@ -71,6 +72,8 @@ public:
 	void AnimNotify_AttackR();
 	UFUNCTION()
 	void AnimNotify_Reloaded();
+	UFUNCTION()
+	void AnimNotify_Installed();
 	UFUNCTION()
 	void AnimNotify_GameOver();
 };

@@ -4,11 +4,6 @@
 #include "ASeedPlayerVFXComponent.h"
 #include "../ASeedPlayer.h"
 
-UASeedPlayerVFXComponent::UASeedPlayerVFXComponent()
-{
-	NiagaraComp = CreateDefaultSubobject<UNiagaraComponent>(TEXT("NiagaraComp"));
-}
-
 void UASeedPlayerVFXComponent::BeginPlay()
 {
 	Super::BeginPlay();

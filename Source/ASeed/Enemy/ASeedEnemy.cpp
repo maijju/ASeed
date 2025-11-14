@@ -149,6 +149,8 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 	}
 
 	/*--------------ASSIGN PROPERTIES--------------*/
+	Name = Row->Name;
+	bIsBossEnemy = Row->bIsBossEnemy;
 	AttackAbilityTag = Row->AttackAbilityTag;
 	AttackEffectTags = Row->AttackEffectTags;
 	AttackCueTag = Row->AttackCueTag;
@@ -184,17 +186,27 @@ void AASeedEnemy::Attack()
 	{
 		FVector	Forward = GetActorForwardVector();
 
-		FVector	HitStart = GetActorLocation() + Forward * 50.f;
-		FVector	HitEnd = GetActorLocation() + Forward * (50.f + AttributeSet->GetAttackRange());
+		FVector HitStart = GetActorLocation() + Forward * 50.f;
+		FVector HitEnd = GetActorLocation() + Forward * (50.f + AttributeSet->GetAttackRange());
 
-		FHitResult result;
+		float Radius = 300.f;
 
-		FCollisionQueryParams	param;
-		param.AddIgnoredActor(this);
-		param.bTraceComplex = false;
+		FHitResult HitResult;
 
-		bool Collision = GetWorld()->LineTraceSingleByChannel(result, HitStart, HitEnd,
-			ECollisionChannel::ECC_GameTraceChannel6, param);
+		FCollisionQueryParams Params;
+		Params.AddIgnoredActor(this);
+		Params.bTraceComplex = false;
+
+		FCollisionShape Sphere = FCollisionShape::MakeSphere(Radius);
+		bool bHit = GetWorld()->SweepSingleByChannel(
+			HitResult,
+			HitStart,
+			HitEnd,
+			FQuat::Identity,
+			ECollisionChannel::ECC_GameTraceChannel6,
+			Sphere,
+			Params
+		);
 
 		FGameplayEventData	EventData;
 		AAIController* AIController = Cast<AAIController>(GetController());
@@ -215,7 +227,7 @@ void AASeedEnemy::Attack()
 		}
 
 		FGameplayAbilityTargetData_SingleTargetHit* TargetData =
-			new FGameplayAbilityTargetData_SingleTargetHit(result);
+			new FGameplayAbilityTargetData_SingleTargetHit(HitResult);
 
 		EventData.TargetData.Add(TargetData);
 
@@ -246,9 +258,16 @@ void AASeedEnemy::Fire()
 
 void AASeedEnemy::OnDamage()
 {
-	UE_LOG(LogTemp, Warning, TEXT("OUCH! %f"), AttributeSet->GetHP());
-	HPBarWidget->SetHPPercent(AttributeSet->GetHP(), AttributeSet->GetHPMax());
-
+	if (!bIsBossEnemy)
+	{
+		HPBarWidget->SetHPPercent(AttributeSet->GetHP(), AttributeSet->GetHPMax());
+	}
+	else
+	{
+		AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
+		GM->SetBossName(FText::FromString(Name));
+		GM->SetBossHPPercent(AttributeSet->GetHP(), AttributeSet->GetHPMax());
+	}
 }
 
 void AASeedEnemy::OnGameplayStun(const FGameplayTag Tag, int32 Count)
@@ -270,7 +289,6 @@ void AASeedEnemy::OnGameplayStun(const FGameplayTag Tag, int32 Count)
 
 void AASeedEnemy::Die()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Dead"));
 	AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
 	GM->EarnEliminationRewards(FRewards(ExpReward, CreditReward));
 	Destroy();

@@ -34,6 +34,14 @@ void UASeedPlayerAnimInst::AnimNotify_Reloaded()
 	}
 }
 
+void UASeedPlayerAnimInst::AnimNotify_Installed()
+{
+	AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
+	GM->TryInstallModule();
+	Owner->ZaWarudo(false);
+	Montage_Stop(0.0f);
+}
+
 void UASeedPlayerAnimInst::AnimNotify_GameOver()
 {
 	AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());

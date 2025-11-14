@@ -47,10 +47,12 @@ protected:
 	FEnemyBulletData* BulletRow;
 
 	/*--------------LOCALS--------------*/
+	FString Name;
 	TObjectPtr<UASeedEnemyAnimInst> AnimInst;
 	float bHasProjectile;
 	float ExpReward;
 	float CreditReward;
+	bool bIsBossEnemy;
 
 	/*--------------UI--------------*/
 	TObjectPtr<UWidgetComponent> WidgetComp;

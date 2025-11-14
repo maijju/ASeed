@@ -18,14 +18,9 @@ class ASEED_API UASeedPlayerVFXComponent : public USceneComponent
 {
 	GENERATED_BODY()
 
-public:	
-	UASeedPlayerVFXComponent();
-
 protected:
 	TObjectPtr<class AASeedPlayer> Owner;
-
-	TObjectPtr<UNiagaraComponent> NiagaraComp;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	UPROPERTY(EditAnywhere, BlueprintReadOnly)
 	TMap<FName, UNiagaraSystem*> NiagaraMap;
 
 	FTimerHandle VFXDurationHandle;

@@ -11,7 +11,7 @@ AASeedPlayerBullet::AASeedPlayerBullet()
 	/*--------------BODY--------------*/
 	Body = CreateDefaultSubobject<UBoxComponent>(TEXT("Body"));
 	SetRootComponent(Body);
-	Body->SetBoxExtent(FVector(60.0, 60.0, 60.0));
+	Body->SetBoxExtent(FVector(100.0, 100.0, 100.0));
 	Body->SetCollisionProfileName(TEXT("PlayerAttack"));
 	Body->OnComponentBeginOverlap.AddDynamic(this, &AASeedPlayerBullet::OnProjectileHit);
 	Body->SetGenerateOverlapEvents(false);
@@ -51,6 +51,12 @@ void AASeedPlayerBullet::OnProjectileHit(UPrimitiveComponent* OverlappedComp, AA
 		{
 			FGameplayEventData	EventData;
 			EventData.Target = Hit.GetActor();
+
+			if (Hit.GetActor()->IsA<AASeedPlayerBullet>())
+			{
+				return;
+			}
+
 			EventData.Instigator = OwnerController->GetPawn();
 			EventData.EventTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Hit"));
 

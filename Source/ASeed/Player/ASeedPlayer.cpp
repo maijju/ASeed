@@ -48,6 +48,10 @@ AASeedPlayer::AASeedPlayer()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
+	/*--------------LIGHT--------------*/
+	SpotLight = CreateDefaultSubobject<USpotLightComponent>(TEXT("SpotLight"));
+	SpotLight->SetupAttachment(RootComponent);
+
 	/*--------------GAS--------------*/
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	AttributeSet = CreateDefaultSubobject<UASeedPlayerAttributeSet>(TEXT("AttributeSet"));
@@ -216,18 +220,19 @@ void AASeedPlayer::InstallModule()
 {
 	if (AnimInst->IsAnyMontagePlaying())
 		return;
-	GM->TryInstallModule();
+
+	AnimInst->PlayMontageByType(EMontageType::InstallModule);
+
+	ZaWarudo(true);
 }
 
 void AASeedPlayer::ShowStatus()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Ang"))
 	GM->ShowStatus(AttributeSet);
 }
 
 void AASeedPlayer::CloseStatus()
 {
-	UE_LOG(LogTemp, Warning, TEXT("gimo"))
 	GM->CloseStatus();
 }
 

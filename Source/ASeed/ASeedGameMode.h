@@ -43,6 +43,7 @@ public:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaTime) override;
 
 protected:
 	/*--------------PLAYER STATE--------------*/
@@ -87,6 +88,7 @@ protected:
 	TArray<FVector> SpawnOffsets;
 
 	/*--------------ENEMY WAVE--------------*/
+	float GameTimer = 300.f;
 	TArray<struct FWaveInfo> Waves;
 	int32 CurrentWave = 0;
 	int32 LastWave;
@@ -99,7 +101,9 @@ protected:
 	TObjectPtr<class UASeedUI_ModuleDetected> ModuleDetectedUI;
 	TObjectPtr<class UASeedUI_ApplyBullet> ApplyBulletUI;
 	TObjectPtr<class UASeedUI_ApplySkill> ApplySkillUI;
+	TObjectPtr<class UASeedUI_BossHP> BossHPUI;
 	TObjectPtr<class UASeedUI_Status> StatusUI;
+	TObjectPtr<class UASeedUI_Timer> TimerUI;
 	TObjectPtr<class UASeedUI_GameOver> GameOverUI;
 
 public:
@@ -120,6 +124,9 @@ public:
 
 	void ShowStatus(const class UASeedAttributeSet* Attr);
 	void CloseStatus();
+
+	void SetBossHPPercent(float CurrentHP, float MaxHP);
+	void SetBossName(FText Name);
 
 	void GameOver();
 

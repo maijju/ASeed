@@ -29,6 +29,9 @@ public:
 	bool bHasProjectile;
 
 	UPROPERTY(EditAnywhere)
+	bool bIsBossEnemy;
+
+	UPROPERTY(EditAnywhere)
 	FName BulletKey;
 
 	UPROPERTY(EditAnywhere)

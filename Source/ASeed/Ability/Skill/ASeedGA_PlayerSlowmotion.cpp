@@ -60,7 +60,6 @@ void UASeedGA_PlayerSlowmotion::ActivateAbility(const FGameplayAbilitySpecHandle
 void UASeedGA_PlayerSlowmotion::EndDuration()
 {
 	UWorld* World = CachedActorInfo->AvatarActor->GetWorld();
-	UE_LOG(LogTemp, Warning, TEXT("Ang"));
 	UGameplayStatics::SetGlobalTimeDilation(World, 1.0f);
 
 	AASeedPlayer* Player = Cast<AASeedPlayer>(GetAvatarActorFromActorInfo());

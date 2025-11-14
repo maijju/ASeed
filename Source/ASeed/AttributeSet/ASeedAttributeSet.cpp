@@ -6,8 +6,6 @@
 void UASeedAttributeSet::PostGameplayEffectExecute(const struct FGameplayEffectModCallbackData& Data)
 {
 	Super::PostGameplayEffectExecute(Data);
-
-	UE_LOG(LogTemp, Warning, TEXT("Attribute Changed: %s"), *Data.EvaluatedData.Attribute.GetName());
 	
 	if (Data.EvaluatedData.Attribute == GetHPAttribute())
 	{
