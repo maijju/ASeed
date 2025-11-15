@@ -130,19 +130,20 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 	MeshComp->SetRelativeLocation(FVector(0.0, 0.0, -Height/2));
 	WidgetComp->SetRelativeLocation(FVector(0, 0, Height + 30));
 
-	/*--------------SPOT LIGHT--------------*/
+	/*--------------SPOTLIGHT--------------*/
 	USpotLightComponent* SpotLight = NewObject<USpotLightComponent>(this, USpotLightComponent::StaticClass());
 	if (SpotLight)
 	{
 		SpotLight->AttachToComponent(Body, FAttachmentTransformRules::KeepRelativeTransform);
 		SpotLight->RegisterComponent();
 
-		SpotLight->SetRelativeLocation(FVector(0.0f, 0.0f, Height * 0.8f));
+		SpotLight->SetRelativeLocation(FVector(0.0f, 0.0f, Height*0.8f));
 		SpotLight->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 
 		SpotLight->SetLightColor(FColor(255, 100, 100));
 		SpotLight->SetIntensity(1000.0f);
-		SpotLight->SetAttenuationRadius(600.0f);
+		SpotLight->SetAttenuationRadius(100.f);
+		SpotLight->ShadowResolutionScale = 0.5f;
 
 		SpotLight->SetInnerConeAngle(15.0f);
 		SpotLight->SetOuterConeAngle(40.0f);

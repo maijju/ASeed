@@ -122,7 +122,6 @@ protected:
 	void Reload(); // pair with Reloaded
 	void InstallModule();
 	void ShowStatus();
-	void CloseStatus();
 
 public:
 	void Fire(FName SocketName);
@@ -168,6 +167,18 @@ public:
 	{
 		return VFXComp;
 	}
+	FName GetBulletKey()
+	{
+		return BulletKey;
+	}
+	FName GetSkillAKey()
+	{
+		return SkillAKey;
+	}
+	FName GetSkillBKey()
+	{
+		return SkillBKey;
+	}
 	void UpdateBulletKey(FName Key)
 	{
 		BulletKey = Key;
@@ -183,9 +194,11 @@ public:
 		SkillBKey = Key;
 		SkillComp->UpdateSkillBDataByKey(Key);
 	}
+	UFUNCTION(BlueprintCallable)
 	void SetRotationFreeze(bool Enable)
 	{
 		bRotationFreeze = Enable;
+		GetCharacterMovement()->bOrientRotationToMovement = !Enable;
 	}
 	UFUNCTION(BlueprintImplementableEvent)
 	void ZaWarudo(bool Enable);

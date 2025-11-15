@@ -45,8 +45,12 @@ public:
 		if (Montage)
 		{
 			// Rolling can cancel auto
-			if (IsAnyMontagePlaying() && Type != EMontageType::Rolling)
+			if (IsAnyMontagePlaying() && Type != EMontageType::Rolling && Type != EMontageType::Die && Type != EMontageType::Rampage)
+			{
+				UE_LOG(LogTemp, Warning, TEXT("%s Canceled"), *Montage->GetName())
 				return;
+			}
+				
 
 			Montage_Play(Montage->Get(), PlaySpeed);
 			if (Type == EMontageType::Rolling)

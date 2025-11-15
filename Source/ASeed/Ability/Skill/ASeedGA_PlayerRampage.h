@@ -18,5 +18,23 @@ public:
 	UASeedGA_PlayerRampage();
 
 protected:
+	/*---------INIT---------*/
+	class AASeedPlayer* Player;
+	class UASeedPlayerAnimInst* AnimInst;
+	UAbilitySystemComponent* PlayerASC;
+	const class UASeedAttributeSet* PlayerAttr;
+
+	FGameplayAbilitySpecHandle CachedHandle;
+	const FGameplayAbilityActorInfo* CachedActorInfo;
+	FGameplayAbilityActivationInfo CachedActivationInfo;
+
+	bool bRampaging = false;
+
+protected:
 	virtual void ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* ActorInfo, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData) override;
+
+public:
+	UFUNCTION()
+	void RepeatFire(UAnimMontage* Montage, bool bInterrupted);
+
 };

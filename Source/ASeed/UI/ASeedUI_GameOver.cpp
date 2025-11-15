@@ -11,4 +11,5 @@ void UASeedUI_GameOver::NativeOnInitialized()
 	QuitButton = Cast<UButton>(GetWidgetFromName(TEXT("Quit")));
 
 	RestartButton->OnClicked.AddDynamic(this, &UASeedUI_GameOver::RestartGame);
+	QuitButton->OnClicked.AddDynamic(this, &UASeedUI_GameOver::QuitGame);
 }

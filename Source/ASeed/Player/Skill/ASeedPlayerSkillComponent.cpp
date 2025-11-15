@@ -8,6 +8,7 @@
 #include "../../Ability/Skill/ASeedGA_PlayerBoost.h"
 #include "../../Ability/Skill/ASeedGA_PlayerRampage.h"
 #include "../../Ability/Skill/ASeedGA_PlayerSlowmotion.h"
+#include "../../ASeedGameMode.h"
 
 UASeedPlayerSkillComponent::UASeedPlayerSkillComponent()
 {
@@ -79,5 +80,8 @@ void UASeedPlayerSkillComponent::TryActivateSkill(bool IsSkillA)
 
 		FGameplayTag SkillTag = Row->AbilityTag;
 		ASC->HandleGameplayEvent(SkillTag, &EventData);
+
+		AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
+		GM->SetSkillCool(IsSkillA, Row->Cooldown);
 	}
 }

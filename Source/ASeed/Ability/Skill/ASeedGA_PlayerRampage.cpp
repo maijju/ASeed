@@ -35,9 +35,14 @@ void UASeedGA_PlayerRampage::ActivateAbility(const FGameplayAbilitySpecHandle Ha
     }
 
     /*---------INIT---------*/
-    AASeedPlayer* Player = Cast<AASeedPlayer>(GetAvatarActorFromActorInfo());
-    UASeedPlayerAnimInst* AnimInst = Player->GetPlayerAnimInstance();
-    UAbilitySystemComponent* PlayerASC = GetAbilitySystemComponentFromActorInfo();
+    Player = Cast<AASeedPlayer>(GetAvatarActorFromActorInfo());
+    AnimInst = Player->GetPlayerAnimInstance();
+    PlayerASC = GetAbilitySystemComponentFromActorInfo();
+    PlayerAttr = PlayerASC->GetSet<UASeedAttributeSet>();
+
+    CachedHandle = Handle;
+    CachedActorInfo = ActorInfo;
+    CachedActivationInfo = ActivationInfo;
 
     if (!Player || !PlayerASC)
     {
@@ -47,7 +52,26 @@ void UASeedGA_PlayerRampage::ActivateAbility(const FGameplayAbilitySpecHandle Ha
 
     /*---------RAMPAGE---------*/
     Player->SetRotationFreeze(true);
+    AnimInst->OnMontageEnded.AddDynamic(this, &UASeedGA_PlayerRampage::RepeatFire);
     AnimInst->PlayMontageByType(EMontageType::Rampage);
+    bRampaging = true;
+}
 
-    EndAbility(Handle, ActorInfo, ActivationInfo, true, false);
+void UASeedGA_PlayerRampage::RepeatFire(UAnimMontage* Montage, bool bInterrupted)
+{
+    if (AnimInst->Montage_IsPlaying(Montage))
+        return;
+
+    if (PlayerAttr->GetAmmo() > 0 && bRampaging)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("Firing"))
+        AnimInst->PlayMontageByType(EMontageType::Rampage);
+    }
+    else
+    {
+        Player->SetRotationFreeze(false);
+        bRampaging = false;
+        AnimInst->OnMontageEnded.RemoveDynamic(this, &UASeedGA_PlayerRampage::RepeatFire);
+        EndAbility(CachedHandle, CachedActorInfo, CachedActivationInfo, true, false);
+    }
 }

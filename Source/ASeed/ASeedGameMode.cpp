@@ -2,18 +2,19 @@
 
 
 #include "ASeedGameMode.h"
-#include "Player/ASeedPlayer.h"
 #include "Player/ASeedPlayerController.h"
 
 #include "UI/HUD/ASeedUI_LevelProgress.h"
 #include "UI/ASeedUI_LevelUp.h"
 #include "UI/HUD/ASeedUI_PlayerHUD.h"
+#include "UI/HUD/ASeedUI_Stat.h"
 #include "UI/ASeedUI_ModuleDetected.h"
 #include "UI/ASeedUI_ApplyBullet.h"
 #include "UI/ASeedUI_ApplySkill.h"
 #include "UI/ASeedUI_Status.h"
 #include "UI/ASeedUI_BossHP.h"
 #include "UI/HUD/ASeedUI_Timer.h"
+#include "UI/ASeedUI_Victory.h"
 #include "UI/ASeedUI_GameOver.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
@@ -31,6 +32,7 @@
 #include "Effect/StatUp/ASeedGE_StatUpExpBonus.h"
 #include "Effect/StatUp/ASeedGE_StatUpCoreBonus.h"
 
+#include "ASeedGameInstance.h"
 #include "Data/ASeedPlayerData.h"
 #include "Data/ASeedGameData.h"
 
@@ -52,6 +54,8 @@ void AASeedGameMode::BeginPlay()
     Super::BeginPlay();
 
     /*--------------LOAD DATA--------------*/
+    WaveKey = Cast<UASeedGameInstance>(GetGameInstance())->GetDifficulty();
+
     WaveData = WaveDataRef.LoadSynchronous();
     FWaveData* WaveRow = WaveData->FindRow<FWaveData>(WaveKey, TEXT(""));
     if (!WaveRow)
@@ -119,12 +123,15 @@ void AASeedGameMode::OnMainWidgetLoaded(UUserWidget* MainWidget)
     LevelHUD = Cast<UASeedUI_LevelProgress>(MainWidget->GetWidgetFromName(TEXT("LevelHUD")));
     LevelUpUI = Cast<UASeedUI_LevelUp>(MainWidget->GetWidgetFromName(TEXT("LevelUp")));
     PlayerHUD = Cast<UASeedUI_PlayerHUD>(MainWidget->GetWidgetFromName(TEXT("PlayerHUD")));
+    SkillHUD = Cast<UASeedUI_SkillHUD>(MainWidget->GetWidgetFromName(TEXT("SkillHUD")));
     ModuleDetectedUI = Cast<UASeedUI_ModuleDetected>(MainWidget->GetWidgetFromName(TEXT("ModuleDetected")));
     ApplyBulletUI = Cast<UASeedUI_ApplyBullet>(MainWidget->GetWidgetFromName(TEXT("ApplyBullet")));
     ApplySkillUI = Cast<UASeedUI_ApplySkill>(MainWidget->GetWidgetFromName(TEXT("ApplySkill")));
+    StatUI = Cast<UASeedUI_Stat>(MainWidget->GetWidgetFromName(TEXT("Stat")));
     StatusUI = Cast<UASeedUI_Status>(MainWidget->GetWidgetFromName(TEXT("Status")));
     BossHPUI = Cast<UASeedUI_BossHP>(MainWidget->GetWidgetFromName(TEXT("BossHP")));
     TimerUI = Cast<UASeedUI_Timer>(MainWidget->GetWidgetFromName(TEXT("Timer")));
+    VictoryUI = Cast<UASeedUI_Victory>(MainWidget->GetWidgetFromName(TEXT("Victory")));
     GameOverUI = Cast<UASeedUI_GameOver>(MainWidget->GetWidgetFromName(TEXT("GameOver")));
 
     if (LevelHUD)
@@ -278,14 +285,15 @@ void AASeedGameMode::EarnEliminationRewards(const FRewards& Rewards)
         CurrentCore);
 }
 
-void AASeedGameMode::TryInstallModule()
+bool AASeedGameMode::CanInstallModule()
 {
-    /*---------PROCESSING PAYMENT---------*/
-    if (CurrentCore < Modules[NumOfBuyModules].MaxCore)
-        return;
+    return CurrentCore >= Modules[NumOfBuyModules].MaxCore;
+}
 
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(true);
+void AASeedGameMode::InstallModule()
+{
+    /*---------INCREASE MODULE CNTS---------*/
+    FreezeGame(true);
 
     CurrentCore -= Modules[NumOfBuyModules].MaxCore;
     // if NumOfBuyModules reaches last index of Modules, it keeps last value
@@ -326,7 +334,7 @@ void AASeedGameMode::TryInstallModule()
 
         for (auto RowName : RowNames)
         {
-            if (RowName == FName("Default"))
+            if (RowName == FName("Default") || RowName == Player->GetBulletKey())
                 continue;
 
             FPlayerBulletData* Row = WholeBulletData->FindRow<FPlayerBulletData>(RowName, TEXT(""));
@@ -344,7 +352,7 @@ void AASeedGameMode::TryInstallModule()
 
         for (auto RowName : RowNames)
         {
-            if (RowName == FName("Empty"))
+            if (RowName == FName("Empty") || RowName == Player->GetSkillAKey() || RowName == Player->GetSkillBKey())
                 continue;
 
             FPlayerSkillData* Row = WholeSkillData->FindRow<FPlayerSkillData>(RowName, TEXT(""));
@@ -391,8 +399,7 @@ void AASeedGameMode::OnApplyBullet()
 
     Player->UpdateBulletKey(SelectedModule.ModuleKey);
 
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(false);
+    FreezeGame(false);
 }
 
 void AASeedGameMode::OnApplySkillA()
@@ -401,8 +408,7 @@ void AASeedGameMode::OnApplySkillA()
 
     Player->UpdateSkillAKey(SelectedModule.ModuleKey);
 
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(false);
+    FreezeGame(false);
 }
 
 void AASeedGameMode::OnApplySkillB()
@@ -411,35 +417,70 @@ void AASeedGameMode::OnApplySkillB()
 
     Player->UpdateSkillBKey(SelectedModule.ModuleKey);
 
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(false);
+    FreezeGame(false);
 }
 
 void AASeedGameMode::OnDiscardChange()
 {
     ApplySkillUI->SetVisibility(ESlateVisibility::Collapsed);
     ApplyBulletUI->SetVisibility(ESlateVisibility::Collapsed);
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(false);
+    FreezeGame(false);
+}
+
+void AASeedGameMode::UpdatedStat(const UASeedAttributeSet* Attr)
+{
+    if (StatUI)
+    {
+        StatUI->AttackText->SetText(FText::AsNumber(Attr->GetAttack()));
+        StatUI->DefenseText->SetText(FText::AsNumber(Attr->GetDefense()));
+        StatUI->CooldownReduceText->SetText(FText::AsNumber(Attr->GetCooldownReduce()*100));
+        StatUI->AttackSpeedText->SetText(FText::AsNumber(Attr->GetAttackSpeed()));
+        StatUI->MoveSpeedText->SetText(FText::AsNumber(Attr->GetMoveSpeed()));
+        StatUI->ExpBonusText->SetText(FText::AsNumber(Attr->GetExpBonus()*100));
+        StatUI->CoreBonusText->SetText(FText::AsNumber(Attr->GetCoreBonus()*100));
+    }
+}
+
+void AASeedGameMode::SetSkillCool(bool IsSkillA, float Cool)
+{
+    if (IsSkillA)
+    {
+        SkillHUD->SetCooldownA(Cool);
+    }
+    else
+    {
+        SkillHUD->SetCooldownB(Cool);
+    }
 }
 
 void AASeedGameMode::ShowStatus(const UASeedAttributeSet* Attr)
 {
-    StatusUI->SetVisibility(ESlateVisibility::Visible);
+    FreezeGame(true);
 
-    StatusUI->AttackText->SetText(FText::AsNumber(Attr->GetAttack()));
-    StatusUI->DefenseText->SetText(FText::AsNumber(Attr->GetDefense()));
-    StatusUI->MaxHPText->SetText(FText::AsNumber(Attr->GetHPMax()));
-    StatusUI->MaxAmmoText->SetText(FText::AsNumber(Attr->GetAmmoMax()));
-    StatusUI->CooldownReduceText->SetText(FText::AsNumber(Attr->GetCooldownReduce()));
-    StatusUI->AttackSpeedText->SetText(FText::AsNumber(Attr->GetAttackSpeed()));
-    StatusUI->MoveSpeedText->SetText(FText::AsNumber(Attr->GetMoveSpeed()));
-    StatusUI->ExpBonusText->SetText(FText::AsNumber(Attr->GetExpBonus()));
-    StatusUI->CoreBonusText->SetText(FText::AsNumber(Attr->GetCoreBonus()));
+    if (StatusUI->Visibility == ESlateVisibility::Collapsed)
+    {
+        StatusUI->SetVisibility(ESlateVisibility::Visible);
+
+        StatusUI->AttackText->SetText(FText::AsNumber(Attr->GetAttack()));
+        StatusUI->DefenseText->SetText(FText::AsNumber(Attr->GetDefense()));
+        StatusUI->MaxHPText->SetText(FText::AsNumber(Attr->GetHPMax()));
+        StatusUI->MaxAmmoText->SetText(FText::AsNumber(Attr->GetAmmoMax()));
+        StatusUI->CooldownReduceText->SetText(FText::AsNumber(Attr->GetCooldownReduce()*100));
+        StatusUI->AttackSpeedText->SetText(FText::AsNumber(Attr->GetAttackSpeed()));
+        StatusUI->MoveSpeedText->SetText(FText::AsNumber(Attr->GetMoveSpeed()));
+        StatusUI->ExpBonusText->SetText(FText::AsNumber(Attr->GetExpBonus()*100));
+        StatusUI->CoreBonusText->SetText(FText::AsNumber(Attr->GetCoreBonus()*100));
+    }
+    else
+    {
+        CloseStatus();
+    }
 }
 
 void AASeedGameMode::CloseStatus()
 {
+    FreezeGame(false);
+
     StatusUI->SetVisibility(ESlateVisibility::Collapsed);
 }
 
@@ -461,15 +502,12 @@ void AASeedGameMode::SetBossName(FText Name)
 void AASeedGameMode::GameOver()
 {
     GameOverUI->SetVisibility(ESlateVisibility::Visible);
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(true);
+    FreezeGame(true);
 }
 
 void AASeedGameMode::LevelUp()
 {
-    /*---------PAUSE GAME IMMEDIATELY---------*/
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(true);
+    FreezeGame(true);
     
     /*---------SHUFFLE REWARDS---------*/
     TArray<FLevelUpRewardInfo> Result;
@@ -498,10 +536,6 @@ void AASeedGameMode::OnCardSelected(FCard Card)
 {
     /*---------COLLAPSE LEVELUP UI---------*/
     LevelUpUI->SetVisibility(ESlateVisibility::Collapsed);
-    
-    /*---------RESUME GAME---------*/
-    APlayerController* PC = Cast<APlayerController>(Player->GetController());
-    PC->SetPause(false);
 
     /*---------APPLYING STATS---------*/
     UAbilitySystemComponent* ASC = Player->GetAbilitySystemComponent();
@@ -571,4 +605,6 @@ void AASeedGameMode::OnCardSelected(FCard Card)
 
         ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
     }
+
+    FreezeGame(false);
 }

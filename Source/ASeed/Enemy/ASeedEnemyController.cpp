@@ -33,10 +33,4 @@ void AASeedEnemyController::StopMovement()
 void AASeedEnemyController::OnMoveCompleted(FAIRequestID RequestID, const FPathFollowingResult& Result)
 {
     Super::OnMoveCompleted(RequestID, Result);
-    if (Result.IsSuccess()) {
-        UE_LOG(LogTemp, Log, TEXT("OnMoveCompleted: success"));
-    }
-    else {
-        UE_LOG(LogTemp, Warning, TEXT("OnMoveCompleted: failed/aborted - %s"), *Result.ToString());
-    }
 }

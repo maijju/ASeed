@@ -44,6 +44,9 @@ public:
 	FGameplayTag AttackCueTag;
 
 	UPROPERTY(EditAnywhere)
+	float Scale = 1.f;
+
+	UPROPERTY(EditAnywhere)
 	FString		Name;
 
 	UPROPERTY(EditAnywhere)

@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/GameModeBase.h"
+#include "Player/ASeedPlayer.h"
 #include "UI/HUD/ASeedUI_LevelProgress.h"
+#include "UI/HUD/ASeedUI_SkillHUD.h"
 #include "ASeedGameMode.generated.h"
 
 /**
@@ -46,8 +48,11 @@ protected:
 	virtual void Tick(float DeltaTime) override;
 
 protected:
+	/*--------------GAME TIMER--------------*/
+	float GameTimer = 600.f;
+
 	/*--------------PLAYER STATE--------------*/
-	TObjectPtr<class AASeedPlayer> Player;
+	TObjectPtr<AASeedPlayer> Player;
 	TObjectPtr<class AASeedPlayerController> PlayerController;
 	TArray<struct FLevelInfo> Levels;
 	TArray<struct FModuleInfo> Modules;
@@ -63,7 +68,7 @@ protected:
 
 	/*--------------DATA--------------*/
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Data")
-	FName WaveKey = FName("Normal"); // Difficulty
+	FName WaveKey; // Difficulty
 	TSoftObjectPtr<UDataTable> WaveDataRef;
 	UPROPERTY();
 	UDataTable* WaveData;
@@ -88,7 +93,6 @@ protected:
 	TArray<FVector> SpawnOffsets;
 
 	/*--------------ENEMY WAVE--------------*/
-	float GameTimer = 300.f;
 	TArray<struct FWaveInfo> Waves;
 	int32 CurrentWave = 0;
 	int32 LastWave;
@@ -96,21 +100,34 @@ protected:
 
 	/*--------------UI--------------*/
 	TObjectPtr<class UASeedUI_LevelProgress> LevelHUD;
-	TObjectPtr<class UASeedUI_LevelUp> LevelUpUI;
 	TObjectPtr<class UASeedUI_PlayerHUD> PlayerHUD;
+	TObjectPtr<class UASeedUI_SkillHUD> SkillHUD;
+	TObjectPtr<class UASeedUI_Stat> StatUI;
+	TObjectPtr<class UASeedUI_LevelUp> LevelUpUI;
+	TObjectPtr<class UASeedUI_Timer> TimerUI;
+
 	TObjectPtr<class UASeedUI_ModuleDetected> ModuleDetectedUI;
 	TObjectPtr<class UASeedUI_ApplyBullet> ApplyBulletUI;
 	TObjectPtr<class UASeedUI_ApplySkill> ApplySkillUI;
 	TObjectPtr<class UASeedUI_BossHP> BossHPUI;
 	TObjectPtr<class UASeedUI_Status> StatusUI;
-	TObjectPtr<class UASeedUI_Timer> TimerUI;
+	TObjectPtr<class UASeedUI_Victory> VictoryUI;
 	TObjectPtr<class UASeedUI_GameOver> GameOverUI;
+
+protected:
+	void FreezeGame(bool Enable)
+	{
+		APlayerController* PC = Cast<APlayerController>(Player->GetController());
+		PC->SetPause(Enable);
+		SkillHUD->bFreeze = Enable;
+	}
 
 public:
 	void OnMainWidgetLoaded(UUserWidget* MainWidget);
 	void ExecuteWave();
 	void EarnEliminationRewards(const FRewards& Rewards);
-	void TryInstallModule();
+	bool CanInstallModule();
+	void InstallModule();
 	UFUNCTION()
 	void OnConfirmModule();
 	UFUNCTION()
@@ -121,6 +138,11 @@ public:
 	void OnApplySkillB();
 	UFUNCTION()
 	void OnDiscardChange();
+	UFUNCTION()
+	
+	void UpdatedStat(const class UASeedAttributeSet* Attr);
+
+	void SetSkillCool(bool IsSkillA, float Cool);
 
 	void ShowStatus(const class UASeedAttributeSet* Attr);
 	void CloseStatus();

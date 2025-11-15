@@ -18,6 +18,9 @@ class ASEED_API UASeedUI_Title : public UUserWidget
 {
 	GENERATED_BODY()
 	
+protected:
+	class UASeedGameInstance* GI;
+
 	TObjectPtr<UButton> Start;
 	TObjectPtr<UTextBlock> Difficulty;
 	TObjectPtr<UButton> DifficultyDown;
@@ -32,4 +35,8 @@ protected:
 	void StartGame();
 	UFUNCTION()
 	void ExitGame();
+	UFUNCTION()
+	void DiffDown();
+	UFUNCTION()
+	void DiffUp();
 };

@@ -35,4 +35,10 @@ protected:
 		APlayerController* PC = Cast<APlayerController>(GetOwningPlayerPawn()->GetController());
 		PC->SetPause(false);
 	}
+
+	UFUNCTION()
+	void QuitGame()
+	{
+		UGameplayStatics::OpenLevel(GetWorld(), TEXT("Title"));
+	}
 };

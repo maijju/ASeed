@@ -2,7 +2,25 @@
 
 
 #include "ASeedPlayerAttributeSet.h"
+#include "../ASeedGameMode.h"
 #include "../Player/ASeedPlayer.h"
+
+void UASeedPlayerAttributeSet::PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue)
+{
+	Super::PostAttributeChange(Attribute, OldValue, NewValue);
+
+	if (Attribute == GetAttackAttribute() ||
+		Attribute == GetDefenseAttribute() ||
+		Attribute == GetCooldownReduceAttribute() ||
+		Attribute == GetAttackSpeedAttribute() ||
+		Attribute == GetMoveSpeedAttribute() ||
+		Attribute == GetExpBonusAttribute() ||
+		Attribute == GetCoreBonusAttribute())
+	{
+		AASeedGameMode* GM = Cast<AASeedGameMode>(GetWorld()->GetAuthGameMode());
+		GM->UpdatedStat(this);
+	}
+}
 
 void UASeedPlayerAttributeSet::CallbackHP(bool IsDead)
 {

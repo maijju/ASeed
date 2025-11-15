@@ -64,6 +64,10 @@ void UASeedGA_PlayerBoost::ActivateAbility(const FGameplayAbilitySpecHandle Hand
 	AASeedPlayer* Player = Cast<AASeedPlayer>(GetAvatarActorFromActorInfo());
 	Player->GetVFXComponent()->ActivateVFX(FName("Boost"));
 
+	CachedHandle = Handle;
+	CachedActorInfo = ActorInfo;
+	CachedActivationInfo = ActivationInfo;
+
 	UAbilityTask_WaitDelay* WaitTask = UAbilityTask_WaitDelay::WaitDelay(this, Duration);
 	WaitTask->OnFinish.AddDynamic(this, &UASeedGA_PlayerBoost::EndDuration);
 	WaitTask->ReadyForActivation();

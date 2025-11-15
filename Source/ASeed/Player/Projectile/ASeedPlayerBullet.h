@@ -31,7 +31,7 @@ public:
 
 public:
 	UPROPERTY(VisibleAnywhere)
-	TObjectPtr<UBoxComponent> Body;
+	TObjectPtr<USphereComponent> Body;
 
 protected:
 	/*--------BASIC COMPS--------*/

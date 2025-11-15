@@ -20,5 +20,8 @@ public:
 	virtual void CallbackAmmo();
 	virtual void CallbackAmmoMax();
 	virtual void CallbackMoveSpeed(float NewMoveSpeed);
+
+public:
+	virtual void PostAttributeChange(const FGameplayAttribute& Attribute, float OldValue, float NewValue);
 	
 };

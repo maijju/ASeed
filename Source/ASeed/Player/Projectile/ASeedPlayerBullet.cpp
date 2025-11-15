@@ -9,12 +9,16 @@ AASeedPlayerBullet::AASeedPlayerBullet()
 	PrimaryActorTick.bCanEverTick = true;
 
 	/*--------------BODY--------------*/
-	Body = CreateDefaultSubobject<UBoxComponent>(TEXT("Body"));
+	Body = CreateDefaultSubobject<USphereComponent>(TEXT("Body"));
 	SetRootComponent(Body);
-	Body->SetBoxExtent(FVector(100.0, 100.0, 100.0));
+	Body->SetSphereRadius(40.f);
+	FVector Loc = Body->GetRelativeLocation();
+	Loc.Z -= 40;
+	Body->SetRelativeLocation(Loc);
 	Body->SetCollisionProfileName(TEXT("PlayerAttack"));
 	Body->OnComponentBeginOverlap.AddDynamic(this, &AASeedPlayerBullet::OnProjectileHit);
 	Body->SetGenerateOverlapEvents(false);
+	Body->bHiddenInGame = false;
 
 	/*--------------MOVEMENT--------------*/
 	MoveComp = CreateDefaultSubobject<UProjectileMovementComponent>(TEXT("Movement"));

@@ -87,7 +87,6 @@ void AASeedPlayer::SetupPlayerInputComponent(UInputComponent* PlayerInputCompone
 		EnhancedInputComponent->BindAction(SkillBAction, ETriggerEvent::Started, this, &AASeedPlayer::SkillB);
 		EnhancedInputComponent->BindAction(InstallModuleAction, ETriggerEvent::Started, this, &AASeedPlayer::InstallModule);
 		EnhancedInputComponent->BindAction(ShowStatusAction, ETriggerEvent::Started, this, &AASeedPlayer::ShowStatus);
-		EnhancedInputComponent->BindAction(ShowStatusAction, ETriggerEvent::Completed, this, &AASeedPlayer::CloseStatus);
 	}
 }
 
@@ -218,22 +217,16 @@ void AASeedPlayer::Reload()
 
 void AASeedPlayer::InstallModule()
 {
-	if (AnimInst->IsAnyMontagePlaying())
+	if (AnimInst->IsAnyMontagePlaying() || !GM->CanInstallModule())
 		return;
 
 	AnimInst->PlayMontageByType(EMontageType::InstallModule);
-
 	ZaWarudo(true);
 }
 
 void AASeedPlayer::ShowStatus()
 {
-	GM->ShowStatus(AttributeSet);
-}
-
-void AASeedPlayer::CloseStatus()
-{
-	GM->CloseStatus();
+	//GM->ShowStatus(AttributeSet);
 }
 
 void AASeedPlayer::Fire(FName SocketName)

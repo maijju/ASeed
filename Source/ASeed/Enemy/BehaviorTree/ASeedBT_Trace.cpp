@@ -14,16 +14,16 @@ UASeedBT_Trace::UASeedBT_Trace()
 	bNotifyTick = true;
 	bNotifyTaskFinished = true;
 
-	// ºí·¢º¸µå¿¡¼­ »ç¿ëÇÒ Å° ¼³Á¤.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½å¿¡ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ Å° ï¿½ï¿½ï¿½ï¿½.
 	TargetKey.AddObjectFilter(this, GET_MEMBER_NAME_CHECKED(UASeedBT_Trace, TargetKey), AActor::StaticClass());
 }
 
 EBTNodeResult::Type UASeedBT_Trace::ExecuteTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory)
 {
-	// ÇöÀç µ¿ÀÛµÇ´Â AIController¸¦ ¾ò¾î¿Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÛµÇ´ï¿½ AIControllerï¿½ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
 	AAIController* AIController = OwnerComp.GetAIOwner();
 
-	// ºí·¢º¸µå ÄÄÆ÷³ÍÅÍ¸¦ ¾ò¾î¿Â´Ù.
+	// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½Â´ï¿½.
 	UBlackboardComponent* BlackboardComp = OwnerComp.GetBlackboardComponent();
 
 	if (!AIController || !BlackboardComp)
@@ -41,7 +41,7 @@ EBTNodeResult::Type UASeedBT_Trace::ExecuteTask(UBehaviorTreeComponent& OwnerCom
 
 	EPathFollowingRequestResult::Type MoveResult = AIController->MoveToActor(Target);
 
-	// ±æÃ£±â¿¡ ¼º°øÇß´ÂÁö ÆÇ´ÜÇÑ´Ù.
+	// ï¿½ï¿½Ã£ï¿½â¿¡ ï¿½ï¿½ï¿½ï¿½ï¿½ß´ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ï¿½Ñ´ï¿½.
 	if (MoveResult == EPathFollowingRequestResult::Failed)
 	{
 		return EBTNodeResult::Failed;
@@ -101,11 +101,11 @@ void UASeedBT_Trace::TickTask(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemo
 		return;
 	}
 
-	// ¾ÆÁ÷ ¸ø µµÂøÇßÀ¸¸é ÀÌµ¿ »óÅÂ Ã¼Å©
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ ï¿½ï¿½ï¿½ï¿½ Ã¼Å©
 	EPathFollowingStatus::Type PathStatus = AIController->GetMoveStatus();
 	if (PathStatus == EPathFollowingStatus::Idle)
 	{
-		// °ø°Ý »ç°Å¸® ¹ÛÀÎµ¥ Idle ¡æ ±æÃ£±â ½ÇÆÐ
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å¸ï¿½ ï¿½ï¿½ï¿½Îµï¿½ Idle ï¿½ï¿½ ï¿½ï¿½Ã£ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 		FinishLatentTask(OwnerComp, EBTNodeResult::Failed);
 	}
 }

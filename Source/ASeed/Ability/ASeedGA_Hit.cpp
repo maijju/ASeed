@@ -140,10 +140,11 @@ void UASeedGA_Hit::ActivateAbility(const FGameplayAbilitySpecHandle Handle, cons
 		{
 			FGameplayEffectSpecHandle DamageSpecHandle = MakeOutgoingGameplayEffectSpec(UASeedGE_Damage::StaticClass(), 1.f);
 
-			float Dmg = (SourceAttr->GetDefense() / 2) - TargetAttr->GetDefense();
+			float Dmg = (SourceAttr->GetDefense() / 2);
 			Dmg = FMath::Max(1.f, Dmg);
 
-			DamageSpecHandle.Data->SetSetByCallerMagnitude(EffectTag, -Dmg);
+			DamageSpecHandle.Data->SetSetByCallerMagnitude(FGameplayTag::RequestGameplayTag(TEXT("Custom.Effect.Damage")),
+				-Dmg);
 			SourceASC->ApplyGameplayEffectSpecToTarget(*DamageSpecHandle.Data.Get(), TargetASC);
 		}
 
