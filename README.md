@@ -8,6 +8,7 @@
 - **장르**: 덱빌딩 로그라이크 탑다운 슈팅
 - **개발 환경**: Unreal Engine 5.5.4, C++, VisualStudio
 - **개발 인원**: 개인 프로젝트 (1인 개발)
+- **개발 기간**: 2개월 (2025.09.13~2025.11.14)
 - **주요 링크**:
   - 📝 [티스토리 데브로그](https://maiju.tistory.com/category/Projects/A%20Seed)
   - 🎬 [YouTube 데모 플레이 영상](https://youtu.be/_-OkF2EwRps)
