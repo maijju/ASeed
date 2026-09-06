@@ -110,7 +110,7 @@ UASeedGE_Stun::UASeedGE_Stun()
 
 ---
 
-### 2. DataTable 기반의 Data-Driven 구조 (에디터 친화적 개발 환경 조성)
+### 2. DataTable 기반의 Data-Driven 구조
 
 - 컨텐츠 확장성 극대화: `UDataTable`과 `SoftObjectPath/SoftObjectPtr`를 적극 활용하여 **C++ 코드 수정 없이 에디터 데이터 등록만으로 적(Enemy), 총알(Bullet), 스킬 배리언트를 즉시 인게임에 생성 및 적용**하는 파이프라인을 구축했습니다.
 - FGameplayTag를 키로 활용하여 GAS와 연동되는 데이터 테이블: FGameplayTag로 GAS의 GameplayAbility, GameplayEffect를 에디터에서 선택할 수 있도록 설정하여 플레이어가 얻을 수 있는 보상을 에디터 선에서 생성할 수 있는 환경을 만들었습니다.
