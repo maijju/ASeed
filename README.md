@@ -191,8 +191,8 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 <br>
 
 ### 3. UMG를 활용한 전체 HUD및 UI 제작
-- UUserWidget 파생 클래스를 작성한 뒤 블루프린트로 디자인: UMG의 UserWidget을 활용하여 버튼, 텍스트, 프로그래스 바 등의 기능을 구현했습니다.
-- AGameMode가 UI 데이터를 제공하는 GameManager역할을 하도록 설계: UI가 여러 객체를 참조하게 되는 구조를 피하기 위해 커스텀 GameMode에 주요 자원(레벨, 모듈)등을 캐싱하고 UI가 이 데이터를 기반하여 표시하도록 설계했습니다.
+- `UUserWidget` 파생 클래스를 작성한 뒤 블루프린트로 디자인: UMG의 UserWidget을 활용하여 버튼, 텍스트, 프로그래스 바 등의 기능을 구현했습니다.
+- `AGameMode`가 UI 데이터를 제공하는 GameManager역할을 하도록 설계: UI가 여러 객체를 참조하게 되는 구조를 피하기 위해 커스텀 GameMode에 주요 자원(레벨, 모듈)등을 캐싱하고 UI가 이 데이터를 기반하여 표시하도록 설계했습니다.
 - UI전용 컨테이너 구조체를 구축하여 반복되는 데이터에 활용: FCard 구조체를 통해 레벨업 보상을 표현하도록 설계하여 for loop로 UI를 화면에 생성하는 구조를 구현했습니다. 카드 클릭 시 함수는 언리얼의 델리게이트를 활용하여 Broadcast 했습니다.
 
 다음은 주요 코드 요약 (레벨업 보상 선택지 UI) 입니다.
@@ -275,7 +275,7 @@ void UASeedUI_LevelUp::InitializeCards(const TArray<FLevelUpRewardInfo>& Shuffle
 - **문제**: 탄환 발사 Ability 수행 시 단일 `FGameplayTag`만 페이로드에 전달되어, "화염 데미지 + 둔화"처럼 한 번의 공격에 여러 `GameplayEffect`를 동시에 입히는 덱빌딩 시너지를 구현할 수 없었습니다.
 - **해결**:
 	- 발사체 컴포넌트의 데이터 페이로드를 `TArray<FGameplayTag>` 구조로 리팩토링했습니다.
-	- `HandleGameplayEvent` 호출 시 태그 배열 전체를 `FGameplayEventData`로 패킹하여 전송함으로써, 단일 탄환으로 유연한 다중 상태이상을 적에게 적용할 수 있도록 확장했습니다.
+	- 플레이어 총알 충돌 함수 호출 시 태그 배열 전체를 `FGameplayEventData`로 패킹하여 전송함으로써, 단일 탄환으로 유연한 다중 상태이상을 적에게 적용할 수 있도록 확장했습니다.
 
 ```c++
 
