@@ -108,8 +108,6 @@ UASeedGE_Stun::UASeedGE_Stun()
 
 <br>
 
----
-
 ### 2. DataTable 기반의 Data-Driven 구조
 
 - 컨텐츠 확장성 극대화: `UDataTable`과 `SoftObjectPath/SoftObjectPtr`를 적극 활용하여 **C++ 코드 수정 없이 에디터 데이터 등록만으로 적(Enemy), 총알(Bullet), 스킬 배리언트를 즉시 인게임에 생성 및 적용**하는 파이프라인을 구축했습니다.
@@ -258,7 +256,7 @@ void UASeedUI_LevelUp::InitializeCards(const TArray<FLevelUpRewardInfo>& Shuffle
 
 <br>
 
-### 기타 핵심 구현 컨텐츠
+### 4. 기타 핵심 구현 컨텐츠
 - **HLSL Outliner Material**: **커스텀 HLSL 셰이더를 작성**하여 적에게 커서를 올릴 시 아웃라이너가 켜지는 기능을 직접 구현했습니다.
 - **BehaviorTree & Blackboard AI**: 거리 계산, 타겟팅, 스턴(Stun) 상태 제어를 포함한 적 AI를 BehaviourTree_Task와 Blackboard를 **직접 C++클래스로 제작**하여 구현했습니다.
 - **Niagara VFX & GameplayCue**: 나이아가라 이펙트로 플레이어 슬립스트림(주위 속도 슬로우) 스킬 사용 시 시각 효과인 **잔상**을 제작했습니다. GAS의 GameplayCue를 블루프린트로 제작하여 간단히 탄환별 발사/피격 특수 효과를 적용했습니다.
