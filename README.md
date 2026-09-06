@@ -268,14 +268,14 @@ void UASeedUI_LevelUp::InitializeCards(const TArray<FLevelUpRewardInfo>& Shuffle
 ### 1. 관통 탄환 구현 시 충돌 판정 및 다중 타격 오작동
 - **문제**: 기존 탄환은 물리 충돌(`Block`) 시 발생하는 `OnProjectileStop` 이벤트에 의존하여, 적 개체(`Overlap`)를 통과하며 관통 다중 타격을 수행할 수 없는 구조였습니다.
 - **해결**:
-  1. 충돌 프로필을 `PlayerAttack`으로 세분화하고 콜백을 `OnComponentBeginOverlap`으로 재바인딩했습니다.
-  2. `PierceCount` 카운터를 도입하여, 지정된 관통 횟수를 초과하기 전까지 탄환이 파괴되지 않고 연속 `Overlap` 이벤트를 발생시키도록 변경했습니다.
+	- 충돌 프로필을 `PlayerAttack`으로 세분화하고 콜백을 `OnComponentBeginOverlap`으로 재바인딩했습니다.
+	- `PierceCount` 카운터를 도입하여, 지정된 관통 횟수를 초과하기 전까지 탄환이 파괴되지 않고 연속 `Overlap` 이벤트를 발생시키도록 변경했습니다.
 
 ### 2. GAS Event Data 단일 태그 제약으로 인한 복수 효과(Effect) 적용 제한
 - **문제**: 탄환 발사 Ability 수행 시 단일 `FGameplayTag`만 페이로드에 전달되어, "화염 데미지 + 둔화"처럼 한 번의 공격에 여러 `GameplayEffect`를 동시에 입히는 덱빌딩 시너지를 구현할 수 없었습니다.
 - **해결**:
-  1. 발사체 컴포넌트의 데이터 페이로드를 `TArray<FGameplayTag>` 구조로 리팩토링했습니다.
-  2. `HandleGameplayEvent` 호출 시 태그 배열 전체를 `FGameplayEventData`로 패킹하여 전송함으로써, 단일 탄환으로 유연한 다중 상태이상을 적에게 적용할 수 있도록 확장했습니다.
+	- 발사체 컴포넌트의 데이터 페이로드를 `TArray<FGameplayTag>` 구조로 리팩토링했습니다.
+	- `HandleGameplayEvent` 호출 시 태그 배열 전체를 `FGameplayEventData`로 패킹하여 전송함으로써, 단일 탄환으로 유연한 다중 상태이상을 적에게 적용할 수 있도록 확장했습니다.
 
 ```c++
 
@@ -304,7 +304,7 @@ UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerController->GetPaw
 
 ## 개발 회고 및 성찰
 
-- **GAS 설계 패턴을 몸소 체험했습니다.**:
+- **GAS 설계 패턴을 직접 체험**:
   `Ability`, `Effect`, `AttributeSet`을 독립적으로 설계하면서 모듈화된 아키텍처의 중요성을 체감했습니다. 코드 간 결합도를 낮추어 기능 추가나 밸런스 수정 시 발생하는 사이드 이펙트를 최소화할 수 있었습니다. 이번 프로젝트는 캐주얼 슈팅게임에 덱빌딩이라는 복잡한 요소를 추가하여 GAS를 활용했지만, 다음에는 데미지, 기술, 상태이상 등 복잡한 정보가 자주 교차하는 RPG 게임에서 GAS 플러그인을 활용하면 수월할 것이라고 생각했습니다. 게임 하나를 오랜 시간 서비스하는 실제 라이브 서비스 RPG들처럼 수정과 확장이 거듭되는 게임일수록 기초 설계가 더 중요할 것이라는 생각을 확실히 가지게 되었습니다.
-- **언리얼 생태계에 대한 이해도를 높였습니다.**:
+- **언리얼 생태계에 대한 이해도 고양**:
   초기에는 데이터 테이블 로딩 시점과 GAS 초기화(`InitAbilityActorInfo`) 순서가 꼬여 Attribute 값이 반영되지 않거나, 비동기 데이터 로딩 과정에서 널 참조가 발생하는 이슈가 있었습니다. 게임 시작 단계(`BeginPlay`, `OnConstruction`)에 맞춰 초기화 순서를 정교하게 동기화함으로써 안정적인 생성 흐름을 구축했습니다. 이번 경험을 시작으로 더 높은 수준의 게임 엔진 활용 경험을 쌓아갈 것을 새로운 목표로 삼게 되었습니다. 
