@@ -115,7 +115,7 @@ UASeedGE_Stun::UASeedGE_Stun()
 - 컨텐츠 확장성 극대화: `UDataTable`과 `SoftObjectPath/SoftObjectPtr`를 적극 활용하여 **C++ 코드 수정 없이 에디터 데이터 등록만으로 적(Enemy), 총알(Bullet), 스킬 배리언트를 즉시 인게임에 생성 및 적용**하는 파이프라인을 구축했습니다.
 - FGameplayTag를 키로 활용하여 GAS와 연동되는 데이터 테이블: FGameplayTag로 GAS의 GameplayAbility, GameplayEffect를 에디터에서 선택할 수 있도록 설정하여 플레이어가 얻을 수 있는 보상을 에디터 선에서 생성할 수 있는 환경을 만들었습니다.
 
-<img width="1005" height="359" alt="image" src="https://github.com/user-attachments/assets/f136e948-2935-4f16-8d94-671f2f15d985" />
+<img width="1038" height="284" alt="image" src="https://github.com/user-attachments/assets/9eecfbc8-4312-466f-b453-bcbcbfe379ef" />
 
 
 다음은 주요 코드 요약 (Enemy가 데이터 테이블 연동하여 종류를 가지게 되는 과정) 입니다.
@@ -279,11 +279,34 @@ void UASeedUI_LevelUp::InitializeCards(const TArray<FLevelUpRewardInfo>& Shuffle
   1. 발사체 컴포넌트의 데이터 페이로드를 `TArray<FGameplayTag>` 구조로 리팩토링했습니다.
   2. `HandleGameplayEvent` 호출 시 태그 배열 전체를 `FGameplayEventData`로 패킹하여 전송함으로써, 단일 탄환으로 유연한 다중 상태이상을 적에게 적용할 수 있도록 확장했습니다.
 
+```c++
+
+FGameplayEventData	EventData;
+EventData.Target = Hit.GetActor();
+EventData.Instigator = OwnerController->GetPawn();
+EventData.EventTag = FGameplayTag::RequestGameplayTag(TEXT("Custom.Hit"));
+EventData.TargetTags.AddTag(BulletData->GameplayBulletHitCueTag); // 0번 인덱스는 Cue, 1번부터는 Effect Tags
+
+for (const FGameplayTag Tag : BulletData->GameplayEffectTags)
+{
+	EventData.TargetTags.AddTag(Tag);
+}
+
+EventData.EventMagnitude = BulletData->EffectDuration;
+
+FGameplayAbilityTargetData_SingleTargetHit* TargetData =
+	new FGameplayAbilityTargetData_SingleTargetHit(Hit);
+
+EventData.TargetData.Add(TargetData);
+
+UAbilitySystemBlueprintLibrary::SendGameplayEventToActor(OwnerController->GetPawn(), EventData.EventTag, EventData);
+```
+
 ---
 
 ## 개발 회고 및 성찰
 
 - **GAS 설계 패턴을 몸소 체험했습니다.**:
-  `Ability`, `Effect`, `AttributeSet`을 독립적으로 설계하면서 모듈화된 아키텍처의 중요성을 체감했습니다. 코드 간 결합도를 낮추어 기능 추가나 밸런스 수정 시 발생하는 사이드 이펙트를 최소화할 수 있었습니다.
+  `Ability`, `Effect`, `AttributeSet`을 독립적으로 설계하면서 모듈화된 아키텍처의 중요성을 체감했습니다. 코드 간 결합도를 낮추어 기능 추가나 밸런스 수정 시 발생하는 사이드 이펙트를 최소화할 수 있었습니다. 이번 프로젝트는 캐주얼 슈팅게임에 덱빌딩이라는 복잡한 요소를 추가하여 GAS를 활용했지만, 다음에는 데미지, 기술, 상태이상 등 복잡한 정보가 자주 교차하는 RPG 게임에서 GAS 플러그인을 활용하면 수월할 것이라고 생각했습니다. 게임 하나를 오랜 시간 서비스하는 실제 라이브 서비스 RPG들처럼 수정과 확장이 거듭되는 게임일수록 기초 설계가 더 중요할 것이라는 생각을 확실히 가지게 되었습니다.
 - **언리얼 생태계에 대한 이해도를 높였습니다.**:
-  초기에는 데이터 테이블 로딩 시점과 GAS 초기화(`InitAbilityActorInfo`) 순서가 꼬여 Attribute 값이 반영되지 않거나, 비동기 데이터 로딩 과정에서 널 참조가 발생하는 이슈가 있었습니다. Lifecycle 단계(`BeginPlay`, `OnConstruction`)에 맞춰 초기화 순서를 정교하게 동기화함으로써 안정적인 생성 흐름을 구축했습니다.
+  초기에는 데이터 테이블 로딩 시점과 GAS 초기화(`InitAbilityActorInfo`) 순서가 꼬여 Attribute 값이 반영되지 않거나, 비동기 데이터 로딩 과정에서 널 참조가 발생하는 이슈가 있었습니다. 게임 시작 단계(`BeginPlay`, `OnConstruction`)에 맞춰 초기화 순서를 정교하게 동기화함으로써 안정적인 생성 흐름을 구축했습니다. 이번 경험을 시작으로 더 높은 수준의 게임 엔진 활용 경험을 쌓아갈 것을 새로운 목표로 삼게 되었습니다. 
