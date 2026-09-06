@@ -26,7 +26,7 @@
 ## 핵심 구현 컨텐츠 및 아키텍처
 
 ### 1. 게임 컨텐츠와 GAS 핵심 요소 1:1 매칭
-빠른 모듈화와 높은 유지보수성을 달성하기 위해, 게임 내 성장 및 스킬 시스템을 GAS의 핵심 요소와 **1:1로 매칭**하여 설계했습니다.
+- 빠른 모듈화와 높은 유지보수성을 달성하기 위해, 게임 내 성장 및 스킬 시스템을 GAS의 핵심 요소와 **1:1로 매칭**하여 설계했습니다.
 
 | 분류 | 레벨 업 | 모듈 장착 (스킬 모듈) | 모듈 장착 (탄환 모듈) |
 | :--- | :--- | :--- | :--- |
@@ -34,8 +34,17 @@
 | **획득 경로** | 레벨업 시 3개 중 택 1 (수치 랜덤) | 코어 획득 후 수동 설치 (가챠 시스템) | 코어 획득 후 수동 설치 (가챠 시스템) |
 | **매칭 기술** | **AttributeSet** | **Gameplay Ability** | **Gameplay Effect** |
 
-- **스킬 모듈**: `GameplayAbility`로 구현하여 **탄환 발사**, **액티브 스킬** 등을 구현했습니다.
-- **탄환 모듈**: `GameplayEffect` 및 `GameplayTag` 배열로 관리되어, 발사체 충돌 시 적에게 **데미지**, **버프/디버프**를 유연하게 적용합니다.
+**스킬 모듈**: `GameplayAbility`로 구현하여 **탄환 발사**, **액티브 스킬** 등을 구현했습니다.  
+**탄환 모듈**: `GameplayEffect` 및 `GameplayTag` 배열로 관리되어, 발사체 충돌 시 적에게 **데미지**, **버프/디버프**를 유연하게 적용합니다.
+
+> 스킬 모듈 예시 (구르기)
+
+![스킬](/readme_gifs/skil.gif)
+
+> 탄환 모듈 예시 (충격탄)
+
+![탄환](/readme_gifs/bullet.gif)
+
 
 다음은 주요 코드 요약 (탄환 발사 Gameplay Ability, 디버프 Gameplay Effect) 입니다.
 
@@ -96,15 +105,18 @@ UASeedGE_Stun::UASeedGE_Stun()
     DurationMagnitude = FGameplayEffectModifierMagnitude(DurationCaller);
 }
 ```
-(Gameplay Effect 적용은 총알 Hit Ability에 구현되어있습니다.)
 
-- **성과**: 플레이어나 적 등 능력을 사용하는 주체가 쿨타임, 코스트 소모 등의 로직을 전담하지 않는 책임의 분배가 원활히 이루어졌습니다.
+<br>
 
 ---
 
 ### 2. DataTable 기반의 Data-Driven 구조 (에디터 친화적 개발 환경 조성)
 
-`UDataTable`과 `SoftObjectPath/SoftObjectPtr`를 적극 활용하여 **C++ 코드 수정 없이 에디터 데이터 등록만으로 적(Enemy), 총알(Bullet), 스킬 배리언트를 즉시 인게임에 생성 및 적용**하는 파이프라인을 구축했습니다.
+- 컨텐츠 확장성 극대화: `UDataTable`과 `SoftObjectPath/SoftObjectPtr`를 적극 활용하여 **C++ 코드 수정 없이 에디터 데이터 등록만으로 적(Enemy), 총알(Bullet), 스킬 배리언트를 즉시 인게임에 생성 및 적용**하는 파이프라인을 구축했습니다.
+- FGameplayTag를 키로 활용하여 GAS와 연동되는 데이터 테이블: FGameplayTag로 GAS의 GameplayAbility, GameplayEffect를 에디터에서 선택할 수 있도록 설정하여 플레이어가 얻을 수 있는 보상을 에디터 선에서 생성할 수 있는 환경을 만들었습니다.
+
+<img width="1005" height="359" alt="image" src="https://github.com/user-attachments/assets/f136e948-2935-4f16-8d94-671f2f15d985" />
+
 
 다음은 주요 코드 요약 (Enemy가 데이터 테이블 연동하여 종류를 가지게 되는 과정) 입니다.
 > ASeedEnemyData.h
@@ -178,13 +190,78 @@ void AASeedEnemy::InitializeEnemy(FName EnemyKey)
 }
 ```
 
-- **성과**: 에셋 경로와 스탯, 스킬 태그, AI 매개변수를 데이터 테이블로 완전히 분리했습니다. 신규 적 클래스/보스/탄환 추가 시 C++ 재컴파일 없이 에디터에서 테이블 행만 추가하면 인게임에 즉각 반영됩니다.
+<br>
 
-### 3. 기타 핵심 구현 기술
-- **HLSL Outliner Material**: 커스텀 HLSL 셰이더를 작성하여 렌더링 가시성 및 타겟팅 라인 구현.
-- **BehaviorTree & Blackboard AI**: 거리 계산, 타겟팅, 스턴(Stun) 상태 제어를 포함한 적 AI 제어.
-- **Niagara VFX & GameplayCue**: 플레이어 이동 잔상(Trail) 및 타격/발사 특수 효과 시각화.
-- **AssetManager & UMG**: 비동기 로딩 관리 및 체력바/상태창 UI 연동.
+### 3. UMG를 활용한 전체 HUD및 UI 제작
+- UUserWidget 파생 클래스를 작성한 뒤 블루프린트로 디자인: UMG의 UserWidget을 활용하여 버튼, 텍스트, 프로그래스 바 등의 기능을 구현했습니다.
+- AGameMode가 UI 데이터를 제공하는 GameManager역할을 하도록 설계: UI가 여러 객체를 참조하게 되는 구조를 피하기 위해 커스텀 GameMode에 주요 자원(레벨, 모듈)등을 캐싱하고 UI가 이 데이터를 기반하여 표시하도록 설계했습니다.
+- UI전용 컨테이너 구조체를 구축하여 반복되는 데이터에 활용: FCard 구조체를 통해 레벨업 보상을 표현하도록 설계하여 for loop로 UI를 화면에 생성하는 구조를 구현했습니다. 카드 클릭 시 함수는 언리얼의 델리게이트를 활용하여 Broadcast 했습니다.
+
+다음은 주요 코드 요약 (레벨업 보상 선택지 UI) 입니다.
+
+> ASeedUI_LevelUp.cpp
+```c++
+#include "ASeedUI_LevelUp.h"
+
+void UASeedUI_LevelUp::NativeOnInitialized()
+{
+	Super::NativeOnInitialized();
+
+	Cards.SetNum(3);
+
+	for (int32 i=0; i<3; i++)
+	{
+		FString CardId = FString::Printf(TEXT("Card%d"), i + 1);
+		FString StatId = FString::Printf(TEXT("Stat%d"), i + 1);
+		FString DescId = FString::Printf(TEXT("Desc%d"), i + 1);
+		Cards[i].Card = Cast<UButton>(GetWidgetFromName(*CardId));
+		Cards[i].Card->OnClicked.AddDynamic(this, &UASeedUI_LevelUp::OnCardClicked);
+		Cards[i].Stat = Cast<UTextBlock>(GetWidgetFromName(*StatId));
+		Cards[i].Desc = Cast<UTextBlock>(GetWidgetFromName(*DescId));
+	}
+}
+
+void UASeedUI_LevelUp::OnCardClicked()
+{
+	for (int32 i=0; i<3; i++)
+	{
+		if (Cards[i].Card->IsHovered() || Cards[i].Card->IsPressed())
+		{
+			FCard SelectedCard;
+			SelectedCard.StatEnum = Cards[i].StatEnum;
+			SelectedCard.Value = Cards[i].Value;
+			OnCardSelected.Broadcast(SelectedCard);
+			break;
+		}
+	}
+}
+
+void UASeedUI_LevelUp::InitializeCards(const TArray<FLevelUpRewardInfo>& ShuffleResults)
+{
+	for (int32 i=0; i<3; i++)
+	{
+		Cards[i].Stat->SetText(ShuffleResults[i].StatName);
+		
+		// Decide Value here
+		int32 Value = FMath::RandRange(ShuffleResults[i].MinValue, ShuffleResults[i].MaxValue);
+		Cards[i].Value = Value;
+		
+		FString FullDesc = ShuffleResults[i].Description + FString::FromInt(Value);
+		Cards[i].Desc->SetText(FText::FromString(FullDesc));
+
+		Cards[i].StatEnum = ShuffleResults[i].StatEnum;
+	}
+}
+```
+
+<img width="932" height="541" alt="image" src="https://github.com/user-attachments/assets/d0697ab2-2430-4484-a5ad-75bc25e5a55c" />
+
+<br>
+
+### 기타 핵심 구현 컨텐츠
+- **HLSL Outliner Material**: **커스텀 HLSL 셰이더를 작성**하여 적에게 커서를 올릴 시 아웃라이너가 켜지는 기능을 직접 구현했습니다.
+- **BehaviorTree & Blackboard AI**: 거리 계산, 타겟팅, 스턴(Stun) 상태 제어를 포함한 적 AI를 BehaviourTree_Task와 Blackboard를 **직접 C++클래스로 제작**하여 구현했습니다.
+- **Niagara VFX & GameplayCue**: 나이아가라 이펙트로 플레이어 슬립스트림(주위 속도 슬로우) 스킬 사용 시 시각 효과인 **잔상**을 제작했습니다. GAS의 GameplayCue를 블루프린트로 제작하여 간단히 탄환별 발사/피격 특수 효과를 적용했습니다.
 
 ---
 
